@@ -100,6 +100,38 @@ const [activeSlot, setActiveSlot] = useState<1 | 2 | 3>(() => {
     };
   }, []);
 
+  // Hooks must run in the same order every render.
+  // Compute slot metadata with safe fallbacks even before save is ready.
+  const saveUpdatedAt = save?.updatedAt ?? 0;
+  const slotMetas = useMemo(() => {
+    const metas: Array<{ slot: 1 | 2 | 3; hasSave: boolean; updatedAt: number }> = [];
+    for (let i = 1; i <= SLOT_COUNT; i++) {
+      const slot = clampSlot(i);
+      let hasSave = false;
+      let updatedAt = 0;
+      try {
+        const raw = localStorage.getItem(getSaveKey(slot));
+        if (raw) {
+          const parsed: any = JSON.parse(raw);
+          if (parsed && typeof parsed === "object" && typeof parsed.updatedAt === "number") {
+            hasSave = true;
+            updatedAt = parsed.updatedAt;
+          }
+        }
+      } catch {
+        // ignore
+      }
+
+      if (slot === activeSlot && save) {
+        hasSave = true;
+        updatedAt = save.updatedAt;
+      }
+
+      metas.push({ slot, hasSave, updatedAt });
+    }
+    return metas;
+  }, [activeSlot, saveUpdatedAt]);
+
   if (err) {
     return (
       <div className="container">
@@ -138,34 +170,6 @@ const [activeSlot, setActiveSlot] = useState<1 | 2 | 3>(() => {
   }
 
 
-  const slotMetas = useMemo(() => {
-    const metas: Array<{ slot: 1 | 2 | 3; hasSave: boolean; updatedAt: number }> = [];
-    for (let i = 1; i <= SLOT_COUNT; i++) {
-      const slot = clampSlot(i);
-      let hasSave = false;
-      let updatedAt = 0;
-      try {
-        const raw = localStorage.getItem(getSaveKey(slot));
-        if (raw) {
-          const parsed: any = JSON.parse(raw);
-          if (parsed && typeof parsed === "object" && typeof parsed.updatedAt === "number") {
-            hasSave = true;
-            updatedAt = parsed.updatedAt;
-          }
-        }
-      } catch {
-        // ignore
-      }
-
-      if (slot === activeSlot && save) {
-        hasSave = true;
-        updatedAt = save.updatedAt;
-      }
-
-      metas.push({ slot, hasSave, updatedAt });
-    }
-    return metas;
-  }, [activeSlot, save.updatedAt]);
   switch (screen.name) {
     case "title":
       return (
