@@ -19,6 +19,9 @@ export default function Battle(props: {
   onExit: () => void;
 }) {
   const defs = useMemo(() => ({ balance: props.data.balance, units: props.data.units, skills: props.data.skills }), [props.data]);
+  // Hooks must be called unconditionally in the same order on every render.
+  // Keep memoized maps above any early returns.
+  const skillMap = useMemo(() => Object.fromEntries(props.data.skills.map((s) => [s.id, s])), [props.data.skills]);
 
   const battleDef = props.data.battles.find((b) => b.id === props.battleId);
   const aiProfile = props.data.ai.find((x) => x.id === (battleDef?.aiProfileId ?? "ai_normal")) as AiProfile | undefined;
@@ -98,8 +101,6 @@ export default function Battle(props: {
 
   const myActive = myTeam.members[myTeam.activeSlot];
   const enActive = enTeam.members[enTeam.activeSlot];
-
-  const skillMap = useMemo(() => Object.fromEntries(props.data.skills.map((s) => [s.id, s])), [props.data.skills]);
 
   const legal = listLegalActions(state, defs, mySide);
 
