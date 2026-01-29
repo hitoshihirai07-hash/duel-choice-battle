@@ -1,0 +1,9 @@
+{
+  "name": "Duel Choice Battle",
+  "short_name": "DCB",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#fafafa",
+  "theme_color": "#fafafa",
+  "icons": []
+}

@@ -1,0 +1,20 @@
+[
+  {
+    "id": "ai_easy",
+    "lookahead": 0,
+    "randomness": 0.25,
+    "riskAversion": 0.8
+  },
+  {
+    "id": "ai_normal",
+    "lookahead": 1,
+    "randomness": 0.1,
+    "riskAversion": 0.6
+  },
+  {
+    "id": "ai_hard",
+    "lookahead": 1,
+    "randomness": 0.02,
+    "riskAversion": 0.4
+  }
+]

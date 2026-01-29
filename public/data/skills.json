@@ -1,0 +1,104 @@
+[
+  {
+    "id": "sk_attack",
+    "name": "たたかう",
+    "type": "attack",
+    "target": "enemyActive",
+    "power": 1.0,
+    "hit": 1.0,
+    "cooldown": 0,
+    "spCost": 0
+  },
+  {
+    "id": "sk_power_strike",
+    "name": "渾身斬り",
+    "type": "attack",
+    "target": "enemyActive",
+    "power": 1.35,
+    "hit": 0.92,
+    "cooldown": 2,
+    "spCost": 20
+  },
+  {
+    "id": "sk_guard",
+    "name": "みをまもる",
+    "type": "guard",
+    "target": "self",
+    "guardPct": 0.5,
+    "durationTurns": 1,
+    "cooldown": 2,
+    "spCost": 0
+  },
+  {
+    "id": "sk_atk_up",
+    "name": "ちからため",
+    "type": "buff",
+    "target": "self",
+    "buff": {
+      "stat": "atk",
+      "delta": 1
+    },
+    "cooldown": 2,
+    "spCost": 0
+  },
+  {
+    "id": "sk_def_up",
+    "name": "スクルト",
+    "type": "buff",
+    "target": "self",
+    "buff": {
+      "stat": "def",
+      "delta": 1
+    },
+    "cooldown": 2,
+    "spCost": 0
+  },
+  {
+    "id": "sk_spd_up",
+    "name": "ピオラ",
+    "type": "buff",
+    "target": "self",
+    "buff": {
+      "stat": "spd",
+      "delta": 1
+    },
+    "cooldown": 2,
+    "spCost": 0
+  },
+  {
+    "id": "sk_def_down",
+    "name": "ルカニ",
+    "type": "debuff",
+    "target": "enemyActive",
+    "debuff": {
+      "stat": "def",
+      "delta": -1
+    },
+    "hit": 0.85,
+    "cooldown": 2,
+    "spCost": 0
+  },
+  {
+    "id": "sk_atk_down",
+    "name": "ヘナトス",
+    "type": "debuff",
+    "target": "enemyActive",
+    "debuff": {
+      "stat": "atk",
+      "delta": -1
+    },
+    "hit": 0.85,
+    "cooldown": 2,
+    "spCost": 0
+  },
+  {
+    "id": "sk_focus",
+    "name": "精神統一",
+    "type": "charge",
+    "target": "self",
+    "chargeMul": 1.4,
+    "durationTurns": 1,
+    "cooldown": 3,
+    "spCost": 0
+  }
+]

@@ -1,0 +1,53 @@
+{
+  "startNodeId": "n_start",
+  "nodes": [
+    {
+      "id": "n_start",
+      "text": "師匠「ここからは選択で進む試練だ。どっちへ行く？」",
+      "choices": [
+        {
+          "label": "正面から挑む（1vs1）",
+          "nextNodeId": "n_after_1",
+          "battleId": "b_demo_1v1"
+        },
+        {
+          "label": "連戦の道へ（3vs3）",
+          "nextNodeId": "n_after_3",
+          "battleId": "b_demo_3v3"
+        }
+      ]
+    },
+    {
+      "id": "n_after_1",
+      "text": "師匠「よし。次はもっと難しい相手だ。」",
+      "choices": [
+        {
+          "label": "もう一度 1vs1",
+          "nextNodeId": "n_start",
+          "battleId": "b_demo_1v1"
+        },
+        {
+          "label": "3vs3 に挑戦",
+          "nextNodeId": "n_start",
+          "battleId": "b_demo_3v3"
+        }
+      ]
+    },
+    {
+      "id": "n_after_3",
+      "text": "師匠「いい勝負だった。編成と技で差がつくぞ。」",
+      "choices": [
+        {
+          "label": "もう一度 3vs3",
+          "nextNodeId": "n_start",
+          "battleId": "b_demo_3v3"
+        },
+        {
+          "label": "1vs1 に戻る",
+          "nextNodeId": "n_start",
+          "battleId": "b_demo_1v1"
+        }
+      ]
+    }
+  ]
+}

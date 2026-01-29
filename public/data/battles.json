@@ -1,0 +1,44 @@
+[
+  {
+    "id": "b_demo_1v1",
+    "format": "1v1",
+    "enemyTeam": [
+      {
+        "unitId": "u_bandit",
+        "level": 1
+      }
+    ],
+    "aiProfileId": "ai_normal",
+    "rewards": {
+      "trainingPoints": 3,
+      "unlockSkillIds": [
+        "sk_def_down"
+      ]
+    }
+  },
+  {
+    "id": "b_demo_3v3",
+    "format": "3v3",
+    "enemyTeam": [
+      {
+        "unitId": "u_bandit",
+        "level": 1
+      },
+      {
+        "unitId": "u_mage",
+        "level": 1
+      },
+      {
+        "unitId": "u_knight",
+        "level": 1
+      }
+    ],
+    "aiProfileId": "ai_normal",
+    "rewards": {
+      "trainingPoints": 6,
+      "unlockSkillIds": [
+        "sk_power_strike"
+      ]
+    }
+  }
+]

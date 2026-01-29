@@ -1,0 +1,24 @@
+{
+  "buffStageMin": -2,
+  "buffStageMax": 2,
+  "stageMultipliers": [
+    0.8,
+    0.9,
+    1.0,
+    1.1,
+    1.2
+  ],
+  "spMax": 100,
+  "damage": {
+    "defCoef": 0.35,
+    "minDamage": 1,
+    "randomPct": 0.0
+  },
+  "spGain": {
+    "onAttack": 8,
+    "onHit": 6
+  },
+  "swap": {
+    "allowed": true
+  }
+}

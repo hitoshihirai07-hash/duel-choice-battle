@@ -1,0 +1,81 @@
+:root{
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+  color: #111;
+  background: #fafafa;
+}
+*{ box-sizing: border-box; }
+a{ color: inherit; }
+button{
+  cursor: pointer;
+}
+.container{
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 16px;
+}
+.card{
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.row{ display:flex; gap: 12px; flex-wrap: wrap; }
+.col{ flex: 1; min-width: 260px; }
+.h1{ font-size: 22px; font-weight: 800; margin: 0 0 10px; }
+.h2{ font-size: 16px; font-weight: 800; margin: 0 0 10px; }
+.muted{ color:#6b7280; }
+.pill{
+  display:inline-block;
+  border:1px solid #e5e7eb;
+  border-radius: 999px;
+  padding: 4px 10px;
+  background:#fff;
+  font-size: 12px;
+}
+.btn{
+  border:1px solid #e5e7eb;
+  background:#fff;
+  padding: 10px 12px;
+  border-radius: 12px;
+}
+.btn.primary{
+  border-color:#111;
+}
+.btn.danger{
+  border-color:#ef4444;
+}
+.btn:disabled{
+  opacity:0.6; cursor:not-allowed;
+}
+.list{
+  display:flex; flex-direction:column; gap: 8px;
+}
+.grid2{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.kv{
+  display:flex; gap: 8px; align-items: center; flex-wrap: wrap;
+}
+.small{ font-size: 12px; }
+.hr{ height:1px; background:#e5e7eb; margin: 12px 0; }
+.log{
+  max-height: 240px;
+  overflow:auto;
+  background:#0b1020;
+  color:#e5e7eb;
+  border-radius: 12px;
+  padding: 10px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 12px;
+}
+.badge{
+  display:inline-block;
+  padding:2px 8px;
+  border-radius: 999px;
+  background:#f3f4f6;
+  border:1px solid #e5e7eb;
+  font-size:12px;
+}

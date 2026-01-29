@@ -1,0 +1,148 @@
+[
+  {
+    "id": "u_hero",
+    "name": "勇者",
+    "baseStats": {
+      "hp": 130,
+      "atk": 40,
+      "def": 28,
+      "spd": 30
+    },
+    "growth": {
+      "hp": 6,
+      "atk": 2,
+      "def": 2,
+      "spd": 1
+    },
+    "learnableSkillIds": [
+      "sk_attack",
+      "sk_guard",
+      "sk_atk_up",
+      "sk_def_down",
+      "sk_power_strike",
+      "sk_def_up"
+    ],
+    "defaultSkillSet": [
+      "sk_attack",
+      "sk_guard",
+      "sk_atk_up",
+      "sk_power_strike"
+    ]
+  },
+  {
+    "id": "u_warrior",
+    "name": "戦士",
+    "baseStats": {
+      "hp": 160,
+      "atk": 45,
+      "def": 35,
+      "spd": 20
+    },
+    "growth": {
+      "hp": 7,
+      "atk": 2,
+      "def": 2,
+      "spd": 1
+    },
+    "learnableSkillIds": [
+      "sk_attack",
+      "sk_guard",
+      "sk_def_up",
+      "sk_atk_down",
+      "sk_power_strike"
+    ],
+    "defaultSkillSet": [
+      "sk_attack",
+      "sk_guard",
+      "sk_def_up",
+      "sk_power_strike"
+    ]
+  },
+  {
+    "id": "u_mage",
+    "name": "魔法使い",
+    "baseStats": {
+      "hp": 105,
+      "atk": 34,
+      "def": 20,
+      "spd": 36
+    },
+    "growth": {
+      "hp": 5,
+      "atk": 2,
+      "def": 1,
+      "spd": 2
+    },
+    "learnableSkillIds": [
+      "sk_attack",
+      "sk_guard",
+      "sk_spd_up",
+      "sk_def_down",
+      "sk_focus"
+    ],
+    "defaultSkillSet": [
+      "sk_attack",
+      "sk_guard",
+      "sk_spd_up",
+      "sk_focus"
+    ]
+  },
+  {
+    "id": "u_knight",
+    "name": "騎士",
+    "baseStats": {
+      "hp": 145,
+      "atk": 38,
+      "def": 40,
+      "spd": 22
+    },
+    "growth": {
+      "hp": 6,
+      "atk": 2,
+      "def": 2,
+      "spd": 1
+    },
+    "learnableSkillIds": [
+      "sk_attack",
+      "sk_guard",
+      "sk_def_up",
+      "sk_def_down",
+      "sk_atk_up"
+    ],
+    "defaultSkillSet": [
+      "sk_attack",
+      "sk_guard",
+      "sk_def_up",
+      "sk_def_down"
+    ]
+  },
+  {
+    "id": "u_bandit",
+    "name": "盗賊",
+    "baseStats": {
+      "hp": 120,
+      "atk": 36,
+      "def": 24,
+      "spd": 34
+    },
+    "growth": {
+      "hp": 5,
+      "atk": 2,
+      "def": 1,
+      "spd": 2
+    },
+    "learnableSkillIds": [
+      "sk_attack",
+      "sk_guard",
+      "sk_spd_up",
+      "sk_atk_down",
+      "sk_power_strike"
+    ],
+    "defaultSkillSet": [
+      "sk_attack",
+      "sk_guard",
+      "sk_spd_up",
+      "sk_power_strike"
+    ]
+  }
+]
