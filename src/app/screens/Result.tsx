@@ -74,8 +74,9 @@ export default function Result(props: {
       canvas.width = 1200;
       canvas.height = 630;
       canvasRef.current = canvas;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
+      const ctx0 = canvas.getContext("2d");
+      if (!ctx0) return;
+      const ctx: CanvasRenderingContext2D = ctx0;
 
       // 背景
       ctx.fillStyle = "#ffffff";
@@ -107,42 +108,47 @@ export default function Result(props: {
       const topY = 140;
       const rowH = 120;
 
-      async function drawTeam(titleText: string, x: number, members: BattleMemberSummary[]) {
-        ctx.fillStyle = "#111";
-        ctx.font = "bold 28px system-ui, -apple-system, Segoe UI, Roboto, sans-serif";
-        ctx.fillText(titleText, x, topY - 18);
+      async function drawTeam(
+        drawCtx: CanvasRenderingContext2D,
+        titleText: string,
+        x: number,
+        members: BattleMemberSummary[]
+      ) {
+        drawCtx.fillStyle = "#111";
+        drawCtx.font = "bold 28px system-ui, -apple-system, Segoe UI, Roboto, sans-serif";
+        drawCtx.fillText(titleText, x, topY - 18);
 
         for (let i = 0; i < members.length; i++) {
           const m = members[i];
           const y = topY + i * rowH;
 
           // カード枠
-          ctx.fillStyle = "#fff";
-          ctx.strokeStyle = "#ddd";
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          roundRect(ctx, x, y, 500, 96, 18);
-          ctx.fill();
-          ctx.stroke();
+          drawCtx.fillStyle = "#fff";
+          drawCtx.strokeStyle = "#ddd";
+          drawCtx.lineWidth = 2;
+          drawCtx.beginPath();
+          roundRect(drawCtx, x, y, 500, 96, 18);
+          drawCtx.fill();
+          drawCtx.stroke();
 
           // ポートレート
           const px = x + 18;
           const py = y + 16;
-          ctx.fillStyle = "#eee";
-          ctx.fillRect(px, py, 64, 64);
+          drawCtx.fillStyle = "#eee";
+          drawCtx.fillRect(px, py, 64, 64);
           if (m.portrait) {
             try {
               const img = await loadImage(m.portrait);
-              ctx.drawImage(img, px, py, 64, 64);
+              drawCtx.drawImage(img, px, py, 64, 64);
             } catch {
               // ignore
             }
           }
 
           // 名前
-          ctx.fillStyle = "#111";
-          ctx.font = "bold 26px system-ui, -apple-system, Segoe UI, Roboto, sans-serif";
-          ctx.fillText(m.name, x + 100, y + 46);
+          drawCtx.fillStyle = "#111";
+          drawCtx.font = "bold 26px system-ui, -apple-system, Segoe UI, Roboto, sans-serif";
+          drawCtx.fillText(m.name, x + 100, y + 46);
 
           // HPバー
           const hpRate = clamp01(m.maxHp > 0 ? m.hp / m.maxHp : 0);
@@ -150,19 +156,19 @@ export default function Result(props: {
           const barY = y + 60;
           const barW = 360;
           const barH = 18;
-          ctx.fillStyle = "#e9e9e9";
-          ctx.fillRect(barX, barY, barW, barH);
-          ctx.fillStyle = m.alive ? (hpRate > 0.5 ? "#2aa" : hpRate > 0.2 ? "#e9b400" : "#d33") : "#999";
-          ctx.fillRect(barX, barY, Math.max(0, Math.floor(barW * hpRate)), barH);
+          drawCtx.fillStyle = "#e9e9e9";
+          drawCtx.fillRect(barX, barY, barW, barH);
+          drawCtx.fillStyle = m.alive ? (hpRate > 0.5 ? "#2aa" : hpRate > 0.2 ? "#e9b400" : "#d33") : "#999";
+          drawCtx.fillRect(barX, barY, Math.max(0, Math.floor(barW * hpRate)), barH);
 
-          ctx.fillStyle = "#333";
-          ctx.font = "18px system-ui, -apple-system, Segoe UI, Roboto, sans-serif";
-          ctx.fillText(`HP ${m.hp}/${m.maxHp}`, barX, y + 92);
+          drawCtx.fillStyle = "#333";
+          drawCtx.font = "18px system-ui, -apple-system, Segoe UI, Roboto, sans-serif";
+          drawCtx.fillText(`HP ${m.hp}/${m.maxHp}`, barX, y + 92);
         }
       }
 
-      await drawTeam("あなた", leftX, summary.teamA);
-      await drawTeam("相手", rightX, summary.teamB);
+      await drawTeam(ctx, "あなた", leftX, summary.teamA);
+      await drawTeam(ctx, "相手", rightX, summary.teamB);
 
       // フッタ
       ctx.fillStyle = "#666";
