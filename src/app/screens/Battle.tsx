@@ -7,6 +7,7 @@ import { battleLogToText } from "../../engine/serialize";
 import { chooseAiAction, type AiProfile } from "../../engine/ai";
 import type { SaveDataV1 } from "../save/saveAdapter";
 import { trainingSpentToBonus } from "../save/saveUtils";
+import FxOverlay, { type FxKind } from "../components/FxOverlay";
 
 function other(side: Side): Side {
   return side === "A" ? "B" : "A";
@@ -18,7 +19,7 @@ export default function Battle(props: {
   format: BattleFormat;
   battleId: string;
   fromStory: boolean;
-  onFinish: (result: { winner: Side }) => void;
+  onFinish: (result: { winner: Side; state: BattleState }) => void;
   onExit: () => void;
 }) {
   const defs = useMemo(() => ({ balance: props.data.balance, units: props.data.units, skills: props.data.skills }), [props.data]);
@@ -36,13 +37,55 @@ export default function Battle(props: {
   const [selectedAction, setSelectedAction] = useState<Action | null>(null);
 
   type Floater = { id: string; side: Side; slot: number; amount: number; kind: "dmg" | "heal" };
-  const [fx, setFx] = useState<{ floaters: Floater[]; flashKey: number; flashTarget: UnitRef | null }>({
+  type Burst = { id: string; side: Side; slot: number; kind: FxKind };
+  const [fx, setFx] = useState<{ floaters: Floater[]; bursts: Burst[]; flashKey: number; flashTarget: UnitRef | null }>({
     floaters: [],
+    bursts: [],
     flashKey: 0,
     flashTarget: null,
   });
   const prevEventsRef = useRef(0);
   const floaterSeqRef = useRef(0);
+  const burstSeqRef = useRef(0);
+
+  function normalizeFxKind(x: string | undefined): FxKind | null {
+    switch (x) {
+      case "slash":
+      case "impact":
+      case "glow":
+      case "buff":
+      case "debuff":
+      case "shield":
+      case "charge":
+        return x;
+      default:
+        return null;
+    }
+  }
+
+  function inferFxForSkillId(skillId: string | undefined, fallback: FxKind): FxKind {
+    if (!skillId) return fallback;
+    const sk: any = (skillMap as any)[skillId];
+    const explicit = normalizeFxKind(sk?.fx);
+    if (explicit) return explicit;
+    const t = sk?.type as string | undefined;
+    switch (t) {
+      case "attack":
+        return "slash";
+      case "heal":
+        return "glow";
+      case "buff":
+        return "buff";
+      case "debuff":
+        return "debuff";
+      case "guard":
+        return "shield";
+      case "charge":
+        return "charge";
+      default:
+        return fallback;
+    }
+  }
 
   useEffect(() => {
     if (!battleDef) return;
@@ -85,7 +128,7 @@ export default function Battle(props: {
     });
     setState(s);
     prevEventsRef.current = s.events.length;
-    setFx({ floaters: [], flashKey: 0, flashTarget: null });
+    setFx({ floaters: [], bursts: [], flashKey: 0, flashTarget: null });
     setSelectedAction(null);
   }, [props.battleId, props.format, props.save.roster]);
 
@@ -97,11 +140,24 @@ export default function Battle(props: {
     prevEventsRef.current = state.events.length;
 
     const added: Floater[] = [];
+    const addedBursts: Burst[] = [];
     let flashTarget: UnitRef | null = null;
+    const lastSkillBySide: Partial<Record<Side, string>> = {};
 
     for (const e of newEvents) {
+      if (e.kind === "ACTION" && e.action.kind === "useSkill") {
+        lastSkillBySide[e.actor.side] = e.action.skillId;
+      }
+
       if (e.kind === "DAMAGE") {
         flashTarget = e.target;
+        // ダメージ発生時に技エフェクト（攻撃系）
+        addedBursts.push({
+          id: `b${Date.now()}_${++burstSeqRef.current}`,
+          side: e.target.side,
+          slot: e.target.slot,
+          kind: inferFxForSkillId(lastSkillBySide[e.actor.side], "slash"),
+        });
         added.push({
           id: `f${Date.now()}_${++floaterSeqRef.current}`,
           side: e.target.side,
@@ -111,6 +167,12 @@ export default function Battle(props: {
         });
       } else if (e.kind === "HEAL") {
         flashTarget = e.target;
+        addedBursts.push({
+          id: `b${Date.now()}_${++burstSeqRef.current}`,
+          side: e.target.side,
+          slot: e.target.slot,
+          kind: inferFxForSkillId(lastSkillBySide[e.actor.side], "glow"),
+        });
         added.push({
           id: `f${Date.now()}_${++floaterSeqRef.current}`,
           side: e.target.side,
@@ -118,12 +180,35 @@ export default function Battle(props: {
           amount: e.amount,
           kind: "heal",
         });
+      } else if (e.kind === "STAGE") {
+        // バフ/デバフは STAGE で確定した時だけ演出
+        addedBursts.push({
+          id: `b${Date.now()}_${++burstSeqRef.current}`,
+          side: e.target.side,
+          slot: e.target.slot,
+          kind: e.delta > 0 ? "buff" : "debuff",
+        });
+      } else if (e.kind === "GUARD_SET") {
+        addedBursts.push({
+          id: `b${Date.now()}_${++burstSeqRef.current}`,
+          side: e.target.side,
+          slot: e.target.slot,
+          kind: "shield",
+        });
+      } else if (e.kind === "CHARGE_SET") {
+        addedBursts.push({
+          id: `b${Date.now()}_${++burstSeqRef.current}`,
+          side: e.target.side,
+          slot: e.target.slot,
+          kind: "charge",
+        });
       }
     }
 
-    if (added.length || flashTarget) {
+    if (added.length || addedBursts.length || flashTarget) {
       setFx((prevFx) => ({
         floaters: [...prevFx.floaters, ...added],
+        bursts: [...prevFx.bursts, ...addedBursts],
         flashKey: prevFx.flashKey + (flashTarget ? 1 : 0),
         flashTarget: flashTarget ?? prevFx.flashTarget,
       }));
@@ -136,6 +221,15 @@ export default function Battle(props: {
           floaters: prevFx.floaters.filter((x) => x.id !== f.id),
         }));
       }, 850);
+    }
+
+    for (const b of addedBursts) {
+      window.setTimeout(() => {
+        setFx((prevFx) => ({
+          ...prevFx,
+          bursts: prevFx.bursts.filter((x) => x.id !== b.id),
+        }));
+      }, 680);
     }
   }, [state]);
 
@@ -193,7 +287,7 @@ export default function Battle(props: {
     setSelectedAction(null);
 
     if (next.winner) {
-      props.onFinish({ winner: next.winner });
+      props.onFinish({ winner: next.winner, state: next });
     }
   }
 
@@ -223,6 +317,7 @@ export default function Battle(props: {
               side={mySide}
               slot={myTeam.activeSlot}
               floaters={fx.floaters.filter((f) => f.side === mySide && f.slot === myTeam.activeSlot)}
+              bursts={fx.bursts.filter((b) => b.side === mySide && b.slot === myTeam.activeSlot)}
               flashKey={fx.flashKey}
               flashTarget={fx.flashTarget}
             />
@@ -242,6 +337,7 @@ export default function Battle(props: {
               side={enemySide}
               slot={enTeam.activeSlot}
               floaters={fx.floaters.filter((f) => f.side === enemySide && f.slot === enTeam.activeSlot)}
+              bursts={fx.bursts.filter((b) => b.side === enemySide && b.slot === enTeam.activeSlot)}
               flashKey={fx.flashKey}
               flashTarget={fx.flashTarget}
             />
@@ -331,6 +427,7 @@ function UnitPanel(props: {
   side: Side;
   slot: number;
   floaters: { id: string; amount: number; kind: "dmg" | "heal" }[];
+  bursts: { id: string; kind: FxKind }[];
   flashKey: number;
   flashTarget: UnitRef | null;
 }) {
@@ -372,6 +469,12 @@ function UnitPanel(props: {
           <div key={f.id} className={"floater " + (f.kind === "heal" ? "heal" : "dmg")}>
             {f.kind === "heal" ? "+" : "-"}{f.amount}
           </div>
+        ))}
+      </div>
+
+      <div className="unitFxLayer">
+        {props.bursts.map((b) => (
+          <FxOverlay key={b.id} kind={b.kind} />
         ))}
       </div>
     </div>

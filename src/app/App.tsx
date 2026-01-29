@@ -7,6 +7,7 @@ import PartyBuild from "./screens/PartyBuild";
 import Story from "./screens/Story";
 import Battle from "./screens/Battle";
 import Training from "./screens/Training";
+import Result, { type BattleSummary } from "./screens/Result";
 
 import { ACTIVE_SLOT_KEY, SLOT_COUNT, clampSlot, createLocalStorageAdapter, getBackupKey, getSaveKey } from "./save/localStorageAdapter";
 import type { SaveDataV1 } from "./save/saveAdapter";
@@ -16,6 +17,9 @@ export default function App() {
   const [data, setData] = useState<GameData | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [screen, setScreen] = useState<Screen>({ name: "title" });
+
+  const [lastBattle, setLastBattle] = useState<BattleSummary | null>(null);
+  const [afterResult, setAfterResult] = useState<Screen | null>(null);
 
 const [activeSlot, setActiveSlot] = useState<1 | 2 | 3>(() => {
     try {
@@ -300,6 +304,44 @@ const [activeSlot, setActiveSlot] = useState<1 | 2 | 3>(() => {
           battleId={screen.battleId}
           fromStory={screen.fromStory}
           onFinish={(result) => {
+            // 戦績（共有カード用）を保持
+            try {
+              const unitById = new Map(data.units.map((u) => [u.id, u] as const));
+              const mk = (m: any) => {
+                const ud = unitById.get(m.unitId);
+                return {
+                  unitId: m.unitId as string,
+                  name: ud?.name ?? String(m.unitId),
+                  portrait: (ud as any)?.portrait ?? undefined,
+                  hp: m.hp as number,
+                  maxHp: m.maxHp as number,
+                  alive: (m.hp as number) > 0,
+                };
+              };
+
+              const summary: BattleSummary = {
+                battleId: screen.battleId,
+                format: screen.format,
+                winner: result.winner,
+                turns: Math.max(0, (result.state.turn ?? 1) - 1),
+                ts: Date.now(),
+                fromStory: screen.fromStory,
+                teamA: (result.state.teams.A.members ?? []).map(mk),
+                teamB: (result.state.teams.B.members ?? []).map(mk),
+              };
+              setLastBattle(summary);
+            } catch {
+              // ignore
+            }
+
+            const nextScreen: Screen =
+              result.winner === "A"
+                ? { name: "training", returnTo: screen.fromStory ? "story" : "mode" }
+                : screen.fromStory
+                  ? { name: "story" }
+                  : { name: "mode" };
+            setAfterResult(nextScreen);
+
             if (result.winner === "A") {
               // 勝利報酬
               const b = data.battles.find((x) => x.id === screen.battleId);
@@ -334,14 +376,23 @@ const [activeSlot, setActiveSlot] = useState<1 | 2 | 3>(() => {
                 }
                 return next;
               });
-
-              api.go({ name: "training", returnTo: screen.fromStory ? "story" : "mode" });
-            } else {
-              // 敗北時は戻るだけ
-              api.go(screen.fromStory ? { name: "story" } : { name: "mode" });
             }
+
+            api.go({ name: "result" });
           }}
           onExit={() => api.go(screen.fromStory ? { name: "story" } : { name: "mode" })}
+        />
+      );
+    case "result":
+      return (
+        <Result
+          summary={lastBattle}
+          onContinue={() => {
+            api.go(afterResult ?? { name: "mode" });
+          }}
+          onBack={() => {
+            api.go({ name: "mode" });
+          }}
         />
       );
     case "training":

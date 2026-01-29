@@ -37,6 +37,11 @@ export interface SkillDef {
   name: string;
   type: SkillType;
   target: "self" | "enemyActive" | "allyActive" | "anyEnemy" | "anyAlly";
+  /**
+   * 画面演出（任意）。指定がない場合は type から自動推定。
+   * 例: "slash" | "impact" | "glow" | "buff" | "debuff" | "shield" | "charge"
+   */
+  fx?: string;
   power?: number;
   hit?: number;
   cooldown: number;

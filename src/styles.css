@@ -205,6 +205,70 @@ button{
   inset: 0;
   pointer-events: none;
 }
+
+.unitFxLayer{
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.fxSvg{
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 120px;
+  height: 120px;
+  transform: translate(-50%, -50%);
+  opacity: 0.95;
+}
+
+.fx-slash{
+  animation: fxSlash 380ms ease-out forwards;
+}
+@keyframes fxSlash{
+  from{ opacity: 0; transform: translate(-50%, -50%) rotate(-12deg) scale(0.9); }
+  35%{ opacity: 1; transform: translate(-50%, -50%) rotate(6deg) scale(1.05); }
+  to{ opacity: 0; transform: translate(-50%, -50%) rotate(10deg) scale(1.15); }
+}
+
+.fx-impact{
+  animation: fxImpact 420ms ease-out forwards;
+}
+@keyframes fxImpact{
+  from{ opacity: 0; transform: translate(-50%, -50%) scale(0.7); }
+  45%{ opacity: 1; transform: translate(-50%, -50%) scale(1.15); }
+  to{ opacity: 0; transform: translate(-50%, -50%) scale(1.35); }
+}
+
+.fx-glow{
+  animation: fxGlow 520ms ease-out forwards;
+}
+@keyframes fxGlow{
+  from{ opacity: 0; transform: translate(-50%, -50%) scale(0.85); }
+  35%{ opacity: 1; transform: translate(-50%, -50%) scale(1.02); }
+  to{ opacity: 0; transform: translate(-50%, -50%) scale(1.15); }
+}
+
+.fx-buff{ animation: fxBuff 520ms ease-out forwards; }
+.fx-debuff{ animation: fxBuff 520ms ease-out forwards; }
+@keyframes fxBuff{
+  from{ opacity: 0; transform: translate(-50%, -50%) scale(0.85); }
+  45%{ opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+  to{ opacity: 0; transform: translate(-50%, -50%) scale(1.2); }
+}
+
+.fx-shield{ animation: fxShield 560ms ease-out forwards; }
+@keyframes fxShield{
+  from{ opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+  45%{ opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
+  to{ opacity: 0; transform: translate(-50%, -50%) scale(1.15); }
+}
+
+.fx-charge{ animation: fxCharge 640ms ease-out forwards; }
+@keyframes fxCharge{
+  from{ opacity: 0; transform: translate(-50%, -50%) scale(0.85) rotate(-8deg); }
+  35%{ opacity: 1; transform: translate(-50%, -50%) scale(1.05) rotate(6deg); }
+  to{ opacity: 0; transform: translate(-50%, -50%) scale(1.18) rotate(10deg); }
+}
 .floater{
   position: absolute;
   right: 10px;
