@@ -108,9 +108,14 @@ export default function Battle(props: {
   function submitTurn() {
     if (!selectedAction) return;
 
-    const aiAction = chooseAiAction({ state, defs, side: enemySide, profile: aiProfile });
+    // Reactのstate/propsはクロージャ内で型の絞り込みが維持されないため、ここで安全にガードする
+    const current = state;
+    const profile = aiProfile;
+    if (!current || !profile) return;
 
-    const next = resolveTurn(state, defs, selectedAction, aiAction);
+    const aiAction = chooseAiAction({ state: current, defs, side: enemySide, profile });
+
+    const next = resolveTurn(current, defs, selectedAction, aiAction);
     setState(next);
     setSelectedAction(null);
 
