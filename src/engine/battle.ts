@@ -20,11 +20,15 @@ type Defs = {
   skills: SkillDef[];
 };
 
-export function makeUnitInstance(unit: UnitDef, level: number): UnitInstance {
-  const maxHp = unit.baseStats.hp + unit.growth.hp * (level - 1);
-  const atk = unit.baseStats.atk + unit.growth.atk * (level - 1);
-  const def = unit.baseStats.def + unit.growth.def * (level - 1);
-  const spd = unit.baseStats.spd + unit.growth.spd * (level - 1);
+export function makeUnitInstance(
+  unit: UnitDef,
+  level: number,
+  bonus?: Partial<Record<"hp" | "atk" | "def" | "spd", number>>
+): UnitInstance {
+  const maxHp = unit.baseStats.hp + unit.growth.hp * (level - 1) + (bonus?.hp ?? 0);
+  const atk = unit.baseStats.atk + unit.growth.atk * (level - 1) + (bonus?.atk ?? 0);
+  const def = unit.baseStats.def + unit.growth.def * (level - 1) + (bonus?.def ?? 0);
+  const spd = unit.baseStats.spd + unit.growth.spd * (level - 1) + (bonus?.spd ?? 0);
 
   // We store derived base stats via maxHp & stages multipliers in calc
   // atk/def/spd base are re-derived from unit defs + level when needed.
@@ -36,6 +40,7 @@ export function makeUnitInstance(unit: UnitDef, level: number): UnitInstance {
   return {
     unitId: unit.id,
     level,
+    bonus,
     maxHp,
     hp: maxHp,
     stages: { atk: 0, def: 0, spd: 0 },
@@ -222,8 +227,8 @@ function applySkill(mut: BattleState, defs: Defs, actorRef: UnitRef, skillId: st
     actor.sp = Math.min(balance.spMax, actor.sp + balance.spGain.onAttack);
     mut.events.push({ kind: "SP", target: actorRef, delta: balance.spGain.onAttack, valueAfter: actor.sp });
 
-    const atkBase = baseStatAtLevel(actorDef, actor.level, "atk");
-    const defBase = baseStatAtLevel(safeGet(unitMap, target.unitId, "unit"), target.level, "def");
+    const atkBase = baseStatAtLevel(actorDef, actor.level, "atk") + (actor.bonus?.atk ?? 0);
+    const defBase = baseStatAtLevel(safeGet(unitMap, target.unitId, "unit"), target.level, "def") + (target.bonus?.def ?? 0);
 
     const atkMul = stageMultiplier(balance, actor.stages.atk);
     const defMul = stageMultiplier(balance, target.stages.def);
@@ -307,7 +312,7 @@ function getSpeed(mut: BattleState, defs: Defs, ref: UnitRef): number {
 
   const unitMap = mapById(defs.units);
   const unitDef = safeGet(unitMap, u.unitId, "unit");
-  const base = baseStatAtLevel(unitDef, u.level, "spd");
+  const base = baseStatAtLevel(unitDef, u.level, "spd") + (u.bonus?.spd ?? 0);
   const mul = stageMultiplier(defs.balance, u.stages.spd);
   return base * mul;
 }

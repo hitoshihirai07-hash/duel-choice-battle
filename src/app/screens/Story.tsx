@@ -1,8 +1,11 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import type { GameData } from "../store/dataLoader";
+import type { SaveDataV1 } from "../save/saveAdapter";
 
 export default function Story(props: {
   data: GameData;
+  save: SaveDataV1;
+  onUpdateSave: (fn: (prev: SaveDataV1) => SaveDataV1) => void;
   onBattle: (battleId: string, format: "1v1" | "3v3", nextStoryNodeId: string) => void;
   onBack: () => void;
 }) {
@@ -10,7 +13,7 @@ export default function Story(props: {
   const nodesById = useMemo(() => Object.fromEntries(story.nodes.map((n) => [n.id, n])), [story.nodes]);
   const battlesById = useMemo(() => Object.fromEntries(props.data.battles.map((b) => [b.id, b])), [props.data.battles]);
 
-  const [nodeId, setNodeId] = useState(story.startNodeId);
+  const nodeId = props.save.story.currentNodeId || story.startNodeId;
   const node = nodesById[nodeId];
 
   if (!node) {
@@ -35,6 +38,8 @@ export default function Story(props: {
         <div className="card">
           <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.7 }}>{node.text}</div>
           <div className="hr" />
+          <div className="small muted">育成ポイント: {props.save.resources.trainingPoints ?? 0}</div>
+          <div className="hr" />
           <div className="list">
             {node.choices.map((c, idx) => {
               const b = c.battleId ? battlesById[c.battleId] : null;
@@ -47,7 +52,7 @@ export default function Story(props: {
                       props.onBattle(c.battleId, b.format, c.nextNodeId);
                       return;
                     }
-                    setNodeId(c.nextNodeId);
+                    props.onUpdateSave((prev) => ({ ...prev, story: { ...prev.story, currentNodeId: c.nextNodeId } }));
                   }}
                 >
                   {c.label}

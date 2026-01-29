@@ -3,6 +3,8 @@ import type { BattleFormat, SkillDef, UnitDef } from "../../engine/types";
 import UnitCard from "../components/UnitCard";
 import SkillSlot from "../components/SkillSlot";
 import type { GameData } from "../store/dataLoader";
+import type { SaveDataV1 } from "../save/saveAdapter";
+import { normalizeSkillSet } from "../save/saveUtils";
 
 function pickN<T>(arr: T[], n: number): T[] {
   return arr.slice(0, n);
@@ -10,9 +12,12 @@ function pickN<T>(arr: T[], n: number): T[] {
 
 export default function PartyBuild(props: {
   data: GameData;
+  save: SaveDataV1;
+  onUpdateSave: (fn: (prev: SaveDataV1) => SaveDataV1) => void;
   format: BattleFormat;
   fromStory: boolean;
-  battleKey?: string; // "battleId|nextNodeId"
+  battleId?: string;
+  nextStoryNodeId?: string;
   onStartBattle: (battleId: string, nextStoryNodeId?: string) => void;
   onBack: () => void;
 }) {
@@ -31,22 +36,20 @@ export default function PartyBuild(props: {
 
   const [skillSets, setSkillSets] = useState<Record<string, [string, string, string, string]>>(() => {
     const init: Record<string, [string, string, string, string]> = {};
+    const rosterById = new Map(props.save.roster.map((r) => [r.unitId, r] as const));
     for (const u of units) {
-      init[u.id] = (u.defaultSkillSet.slice(0, 4) as [string, string, string, string]);
+      const r = rosterById.get(u.id);
+      init[u.id] = r ? normalizeSkillSet(r.equippedSkillSet) : normalizeSkillSet(u.defaultSkillSet);
     }
     return init;
   });
 
   const battleId = useMemo(() => {
-    if (!props.fromStory) return props.format === "1v1" ? "b_demo_1v1" : "b_demo_3v3";
-    if (!props.battleKey) return props.format === "1v1" ? "b_demo_1v1" : "b_demo_3v3";
-    return props.battleKey.split("|")[0];
-  }, [props.fromStory, props.battleKey, props.format]);
+    if (props.battleId) return props.battleId;
+    return props.format === "1v1" ? "b_demo_1v1" : "b_demo_3v3";
+  }, [props.battleId, props.format]);
 
-  const nextStoryNodeId = useMemo(() => {
-    if (!props.fromStory || !props.battleKey) return undefined;
-    return props.battleKey.split("|")[1];
-  }, [props.fromStory, props.battleKey]);
+  const nextStoryNodeId = props.nextStoryNodeId;
 
   const battle = battles.find((b) => b.id === battleId);
 
@@ -108,7 +111,12 @@ export default function PartyBuild(props: {
               <div className="muted">ユニットを選んでください</div>
             ) : (
               selectedUnits.map((u) => {
-                const learnables = u.learnableSkillIds.map((id) => skillById[id]).filter(Boolean) as SkillDef[];
+                const rosterEntry = props.save.roster.find((r) => r.unitId === u.id);
+                const unlocked = new Set(rosterEntry?.unlockedSkillIds ?? u.learnableSkillIds);
+                const learnables = u.learnableSkillIds
+                  .filter((id) => unlocked.has(id))
+                  .map((id) => skillById[id])
+                  .filter(Boolean) as SkillDef[];
                 const set = skillSets[u.id];
 
                 return (
@@ -128,10 +136,15 @@ export default function PartyBuild(props: {
                           skill={skillById[set[i]] ?? null}
                           options={learnables}
                           onChange={(skillId) => {
-                            setSkillSets((prev) => ({
-                              ...prev,
-                              [u.id]: prev[u.id].map((x, idx) => (idx === i ? skillId : x)) as [string, string, string, string],
-                            }));
+                            setSkillSets((prev) => {
+                              const nextSet = prev[u.id].map((x, idx) => (idx === i ? skillId : x)) as [string, string, string, string];
+                              // セーブにも反映
+                              props.onUpdateSave((s) => ({
+                                ...s,
+                                roster: s.roster.map((r) => (r.unitId === u.id ? { ...r, equippedSkillSet: nextSet } : r)),
+                              }));
+                              return { ...prev, [u.id]: nextSet };
+                            });
                           }}
                         />
                       ))}

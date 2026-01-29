@@ -5,6 +5,8 @@ import { ENGINE_VERSION } from "../../engine/constants";
 import { initBattle, listLegalActions, makeUnitInstance, resolveTurn } from "../../engine/battle";
 import { battleLogToText } from "../../engine/serialize";
 import { chooseAiAction, type AiProfile } from "../../engine/ai";
+import type { SaveDataV1 } from "../save/saveAdapter";
+import { trainingSpentToBonus } from "../save/saveUtils";
 
 function other(side: Side): Side {
   return side === "A" ? "B" : "A";
@@ -12,6 +14,7 @@ function other(side: Side): Side {
 
 export default function Battle(props: {
   data: GameData;
+  save: SaveDataV1;
   format: BattleFormat;
   battleId: string;
   fromStory: boolean;
@@ -39,10 +42,14 @@ export default function Battle(props: {
     const myIds = sel?.selectedUnitIds?.slice(0, teamSize) ?? props.data.units.slice(0, teamSize).map((u) => u.id);
 
     const unitMap = Object.fromEntries(props.data.units.map((u) => [u.id, u]));
+    const rosterById = new Map(props.save.roster.map((r) => [r.unitId, r] as const));
     const myMembers = myIds.map((id) => {
       const u = unitMap[id];
-      const inst = makeUnitInstance(u, 1);
-      const ss = sel?.skillSets?.[id];
+      const r = rosterById.get(id);
+      const level = r?.level ?? 1;
+      const bonus = trainingSpentToBonus(r?.trainingPointsSpent);
+      const inst = makeUnitInstance(u, level, bonus);
+      const ss = sel?.skillSets?.[id] ?? (r?.equippedSkillSet && r.equippedSkillSet.length === 4 ? (r.equippedSkillSet as any) : undefined);
       if (ss) inst.skillSet = ss;
       return inst;
     });
@@ -66,7 +73,7 @@ export default function Battle(props: {
     });
     setState(s);
     setSelectedAction(null);
-  }, [props.battleId, props.format]);
+  }, [props.battleId, props.format, props.save.roster]);
 
   if (!battleDef || !aiProfile) {
     return (

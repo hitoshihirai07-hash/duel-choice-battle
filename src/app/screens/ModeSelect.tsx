@@ -4,6 +4,7 @@ import type { BattleFormat } from "../../engine/types";
 export default function ModeSelect(props: {
   onStory: () => void;
   onFreeBattle: (format: BattleFormat) => void;
+  onTraining: () => void;
   onBack: () => void;
 }) {
   return (
@@ -29,6 +30,9 @@ export default function ModeSelect(props: {
               </button>
               <button className="btn" onClick={() => props.onFreeBattle("3v3")}>
                 3vs3（交代）
+              </button>
+              <button className="btn" onClick={props.onTraining}>
+                育成（ポイント振り）
               </button>
             </div>
           </div>

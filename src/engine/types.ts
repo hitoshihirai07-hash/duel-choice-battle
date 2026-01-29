@@ -53,6 +53,12 @@ export interface UnitInstance {
   unitId: string;
   level: number;
 
+  /**
+   * 育成（ポイント振り）による恒久ボーナス。
+   * バトル中のバフ/デバフ（stages）とは別。
+   */
+  bonus?: Partial<Record<StatName, number>>;
+
   maxHp: number;
   hp: number;
 

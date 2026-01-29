@@ -4,10 +4,10 @@ export type Screen =
   | { name: "title" }
   | { name: "mode" }
   | { name: "story" }
-  | { name: "party"; format: BattleFormat; fromStory: boolean; battleId?: string }
+  | { name: "party"; format: BattleFormat; fromStory: boolean; battleId?: string; nextStoryNodeId?: string }
   | { name: "battle"; battleId: string; format: BattleFormat; fromStory: boolean; nextStoryNodeId?: string }
   | { name: "result" }
-  | { name: "training" };
+  | { name: "training"; returnTo: "mode" | "story" };
 
 export interface GlobalState {
   screen: Screen;
