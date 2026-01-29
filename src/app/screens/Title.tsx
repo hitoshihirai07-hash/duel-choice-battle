@@ -1,12 +1,19 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 
 export default function Title(props: {
   hasSave: boolean;
   lastUpdatedAt: number;
   onStart: () => void;
   onResetAll: () => Promise<void> | void;
+  onExport: () => void;
+  onImport: (file: File) => Promise<string | null>;
+  hasBackup: boolean;
+  onRestoreBackup: () => Promise<string | null>;
 }) {
-  const [confirm, setConfirm] = useState(false);
+  const [confirmReset, setConfirmReset] = useState(false);
+  const [confirmRestore, setConfirmRestore] = useState(false);
+  const [notice, setNotice] = useState<{ type: "ok" | "ng"; text: string } | null>(null);
+  const fileRef = useRef<HTMLInputElement | null>(null);
 
   const last = useMemo(() => {
     try {
@@ -32,18 +39,80 @@ export default function Title(props: {
 
           <button
             className="btn"
+            onClick={() => {
+              setNotice(null);
+              props.onExport();
+            }}
+          >
+            データ出力
+          </button>
+
+          <button
+            className="btn"
+            onClick={() => {
+              setNotice(null);
+              fileRef.current?.click();
+            }}
+          >
+            データ読み込み
+          </button>
+
+          <input
+            ref={fileRef}
+            type="file"
+            accept="application/json,.json"
+            style={{ display: "none" }}
+            onChange={async (e) => {
+              const f = e.target.files?.[0];
+              // 同じファイルを連続で選べるようにリセット
+              e.currentTarget.value = "";
+              if (!f) return;
+              const msg = await props.onImport(f);
+              if (msg) setNotice({ type: msg.startsWith("OK:") ? "ok" : "ng", text: msg.replace(/^OK:\s?/, "") });
+            }}
+          />
+
+          {props.hasBackup && (
+            <button
+              className="btn"
+              onClick={async () => {
+                if (!confirmRestore) {
+                  setConfirmRestore(true);
+                  return;
+                }
+                setConfirmRestore(false);
+                const msg = await props.onRestoreBackup();
+                if (msg) setNotice({ type: msg.startsWith("OK:") ? "ok" : "ng", text: msg.replace(/^OK:\s?/, "") });
+              }}
+            >
+              {confirmRestore ? "バックアップ復元（もう一度で確定）" : "バックアップ復元"}
+            </button>
+          )}
+
+          <button
+            className="btn"
             onClick={async () => {
-              if (!confirm) {
-                setConfirm(true);
+              if (!confirmReset) {
+                setConfirmReset(true);
                 return;
               }
-              setConfirm(false);
+              setConfirmReset(false);
               await props.onResetAll();
             }}
           >
-            {confirm ? "データ削除（もう一度で確定）" : "データ削除"}
+            {confirmReset ? "データ削除（もう一度で確定）" : "データ削除"}
           </button>
         </div>
+
+        {notice && (
+          <div className="hr" />
+        )}
+        {notice && (
+          <div className={notice.type === "ok" ? "small" : "small"}>
+            <span className={notice.type === "ok" ? "badge" : "badge"}>{notice.type === "ok" ? "OK" : "NG"}</span>{" "}
+            <span className={notice.type === "ok" ? "" : ""}>{notice.text}</span>
+          </div>
+        )}
 
         <div className="hr" />
         <div className="small muted">ローカル保存: {props.hasSave ? "あり" : "なし"} / 最終更新: {last}</div>

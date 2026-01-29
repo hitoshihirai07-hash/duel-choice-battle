@@ -8,7 +8,7 @@ import Story from "./screens/Story";
 import Battle from "./screens/Battle";
 import Training from "./screens/Training";
 
-import { localStorageAdapter } from "./save/localStorageAdapter";
+import { BACKUP_KEY, localStorageAdapter } from "./save/localStorageAdapter";
 import type { SaveDataV1 } from "./save/saveAdapter";
 import { createDefaultSave, normalizeSave } from "./save/saveUtils";
 
@@ -63,6 +63,27 @@ export default function App() {
     });
   };
 
+  const downloadJson = (obj: unknown, filename: string) => {
+    const json = JSON.stringify(obj, null, 2);
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 500);
+  };
+
+  const formatForFileName = (t: number) => {
+    const d = new Date(t);
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(
+      d.getSeconds()
+    )}`;
+  };
+
   const api = useMemo(() => {
     return {
       go: (s: Screen) => setScreen(s),
@@ -115,8 +136,69 @@ export default function App() {
           onStart={() => api.go({ name: "mode" })}
           onResetAll={async () => {
             await localStorageAdapter.clear();
+            try {
+              localStorage.removeItem(BACKUP_KEY);
+            } catch {
+              // ignore
+            }
             setSave(createDefaultSave(data));
             api.go({ name: "title" });
+          }}
+          onExport={() => {
+            const now = Date.now();
+            const payload = {
+              app: "duel-choice-battle",
+              schema: 1,
+              exportedAt: now,
+              save,
+            };
+            downloadJson(payload, `duel-choice-battle-save-${formatForFileName(now)}.json`);
+          }}
+          onImport={async (file) => {
+            try {
+              const text = await file.text();
+              const parsed: any = JSON.parse(text);
+              const candidate: any = parsed?.app === "duel-choice-battle" && parsed?.save ? parsed.save : parsed;
+
+              if (!candidate || typeof candidate !== "object") return "NG: JSONの形式が不正です";
+              if (candidate.version !== 1) return "NG: このデータは読み込めません（version違い）";
+
+              // 直前の状態をバックアップ
+              try {
+                localStorage.setItem(BACKUP_KEY, JSON.stringify(save));
+              } catch {
+                // ignore
+              }
+
+              const next = normalizeSave(data, candidate as SaveDataV1);
+              setSave(next);
+              return "OK: 読み込みました（タイトルに反映済み）";
+            } catch (e) {
+              return `NG: 読み込みに失敗しました（${String(e).slice(0, 80)}）`;
+            }
+          }}
+          hasBackup={(() => {
+            try {
+              return localStorage.getItem(BACKUP_KEY) != null;
+            } catch {
+              return false;
+            }
+          })()}
+          onRestoreBackup={async () => {
+            try {
+              const raw = localStorage.getItem(BACKUP_KEY);
+              if (!raw) return "NG: バックアップが見つかりません";
+              const parsed: any = JSON.parse(raw);
+              if (!parsed || typeof parsed !== "object" || parsed.version !== 1) {
+                return "NG: バックアップ形式が不正です";
+              }
+              const next = normalizeSave(data, parsed as SaveDataV1);
+              setSave(next);
+              localStorage.removeItem(BACKUP_KEY);
+              return "OK: バックアップから復元しました";
+            } catch (e) {
+              return `NG: 復元に失敗しました（${String(e).slice(0, 80)}）`;
+            }
           }}
         />
       );
