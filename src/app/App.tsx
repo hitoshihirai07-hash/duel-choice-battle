@@ -8,7 +8,7 @@ import Story from "./screens/Story";
 import Battle from "./screens/Battle";
 import Training from "./screens/Training";
 
-import { BACKUP_KEY, localStorageAdapter } from "./save/localStorageAdapter";
+import { ACTIVE_SLOT_KEY, SLOT_COUNT, clampSlot, createLocalStorageAdapter, getBackupKey, getSaveKey } from "./save/localStorageAdapter";
 import type { SaveDataV1 } from "./save/saveAdapter";
 import { createDefaultSave, normalizeSave } from "./save/saveUtils";
 
@@ -16,6 +16,16 @@ export default function App() {
   const [data, setData] = useState<GameData | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [screen, setScreen] = useState<Screen>({ name: "title" });
+
+const [activeSlot, setActiveSlot] = useState<1 | 2 | 3>(() => {
+    try {
+      const raw = localStorage.getItem(ACTIVE_SLOT_KEY);
+      return clampSlot(raw ? Number(raw) : 1);
+    } catch {
+      return 1;
+    }
+  });
+  const saveAdapter = useMemo(() => createLocalStorageAdapter(activeSlot), [activeSlot]);
 
   const [save, setSave] = useState<SaveDataV1 | null>(null);
   const [saveReady, setSaveReady] = useState(false);
@@ -31,7 +41,7 @@ export default function App() {
     if (!data) return;
     let alive = true;
     setSaveReady(false);
-    localStorageAdapter
+    saveAdapter
       .load()
       .then((loaded) => {
         if (!alive) return;
@@ -47,12 +57,12 @@ export default function App() {
     return () => {
       alive = false;
     };
-  }, [data]);
+  }, [data, activeSlot]);
 
   // 自動保存
   useEffect(() => {
     if (!save || !saveReady) return;
-    void localStorageAdapter.save(save);
+    void saveAdapter.save(save);
   }, [save, saveReady]);
 
   const updateSave = (fn: (prev: SaveDataV1) => SaveDataV1) => {
@@ -127,20 +137,57 @@ export default function App() {
     );
   }
 
+
+  const slotMetas = useMemo(() => {
+    const metas: Array<{ slot: 1 | 2 | 3; hasSave: boolean; updatedAt: number }> = [];
+    for (let i = 1; i <= SLOT_COUNT; i++) {
+      const slot = clampSlot(i);
+      let hasSave = false;
+      let updatedAt = 0;
+      try {
+        const raw = localStorage.getItem(getSaveKey(slot));
+        if (raw) {
+          const parsed: any = JSON.parse(raw);
+          if (parsed && typeof parsed === "object" && typeof parsed.updatedAt === "number") {
+            hasSave = true;
+            updatedAt = parsed.updatedAt;
+          }
+        }
+      } catch {
+        // ignore
+      }
+
+      if (slot === activeSlot && save) {
+        hasSave = true;
+        updatedAt = save.updatedAt;
+      }
+
+      metas.push({ slot, hasSave, updatedAt });
+    }
+    return metas;
+  }, [activeSlot, save.updatedAt]);
   switch (screen.name) {
     case "title":
       return (
         <Title
-          hasSave={true}
+          currentSlot={activeSlot}
+          slots={slotMetas}
+          hasSave={slotMetas.find((x) => x.slot === activeSlot)?.hasSave ?? true}
           lastUpdatedAt={save.updatedAt}
           onStart={() => api.go({ name: "mode" })}
-          onResetAll={async () => {
-            await localStorageAdapter.clear();
+          onSelectSlot={async (slot) => {
+            const s = clampSlot(slot);
             try {
-              localStorage.removeItem(BACKUP_KEY);
+              localStorage.setItem(ACTIVE_SLOT_KEY, String(s));
             } catch {
               // ignore
             }
+            // 画面はタイトルのまま、セーブ読み込みだけ切り替える
+            setActiveSlot(s);
+            api.go({ name: "title" });
+          }}
+          onResetAll={async () => {
+            await saveAdapter.clear();
             setSave(createDefaultSave(data));
             api.go({ name: "title" });
           }}
@@ -150,9 +197,10 @@ export default function App() {
               app: "duel-choice-battle",
               schema: 1,
               exportedAt: now,
+              slot: activeSlot,
               save,
             };
-            downloadJson(payload, `duel-choice-battle-save-${formatForFileName(now)}.json`);
+            downloadJson(payload, `duel-choice-battle-slot${activeSlot}-save-${formatForFileName(now)}.json`);
           }}
           onImport={async (file) => {
             try {
@@ -165,7 +213,7 @@ export default function App() {
 
               // 直前の状態をバックアップ
               try {
-                localStorage.setItem(BACKUP_KEY, JSON.stringify(save));
+                localStorage.setItem(getBackupKey(activeSlot), JSON.stringify(save));
               } catch {
                 // ignore
               }
@@ -179,14 +227,14 @@ export default function App() {
           }}
           hasBackup={(() => {
             try {
-              return localStorage.getItem(BACKUP_KEY) != null;
+              return localStorage.getItem(getBackupKey(activeSlot)) != null;
             } catch {
               return false;
             }
           })()}
           onRestoreBackup={async () => {
             try {
-              const raw = localStorage.getItem(BACKUP_KEY);
+              const raw = localStorage.getItem(getBackupKey(activeSlot));
               if (!raw) return "NG: バックアップが見つかりません";
               const parsed: any = JSON.parse(raw);
               if (!parsed || typeof parsed !== "object" || parsed.version !== 1) {
@@ -194,7 +242,7 @@ export default function App() {
               }
               const next = normalizeSave(data, parsed as SaveDataV1);
               setSave(next);
-              localStorage.removeItem(BACKUP_KEY);
+              localStorage.removeItem(getBackupKey(activeSlot));
               return "OK: バックアップから復元しました";
             } catch (e) {
               return `NG: 復元に失敗しました（${String(e).slice(0, 80)}）`;

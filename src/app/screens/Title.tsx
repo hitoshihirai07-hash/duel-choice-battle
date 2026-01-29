@@ -1,6 +1,9 @@
 import React, { useMemo, useRef, useState } from "react";
 
 export default function Title(props: {
+  currentSlot: 1 | 2 | 3;
+  slots: Array<{ slot: 1 | 2 | 3; hasSave: boolean; updatedAt: number }>;
+  onSelectSlot: (slot: number) => void | Promise<void>;
   hasSave: boolean;
   lastUpdatedAt: number;
   onStart: () => void;
@@ -31,6 +34,36 @@ export default function Title(props: {
         <div className="muted">
           状態異常なし／バフデバフあり／技4枠／1vs1 & 3vs3(交代) の最小プロト
         </div>
+        <div className="hr" />
+
+        <div className="small muted">セーブスロット</div>
+        <div className="row" style={{ alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+          {props.slots.map((s) => (
+            <button
+              key={s.slot}
+              className={s.slot === props.currentSlot ? "btn primary" : "btn"}
+              onClick={async () => {
+                if (s.slot === props.currentSlot) return;
+                setConfirmReset(false);
+                setConfirmRestore(false);
+                setNotice(null);
+                await props.onSelectSlot(s.slot);
+              }}
+              title={s.hasSave ? `最終更新: ${new Date(s.updatedAt).toLocaleString("ja-JP")}` : "未使用"}
+            >
+              {`slot${s.slot}`}
+            </button>
+          ))}
+        </div>
+        <div className="small muted" style={{ marginTop: 6 }}>
+          {props.slots.map((s) => (
+            <span key={s.slot} style={{ marginRight: 10 }}>
+              <span className="badge">{`S${s.slot}`}</span>{" "}
+              {s.hasSave ? new Date(s.updatedAt).toLocaleString("ja-JP") : "未使用"}
+            </span>
+          ))}
+        </div>
+
         <div className="hr" />
         <div className="row" style={{ alignItems: "center", gap: 12, flexWrap: "wrap" }}>
           <button className="btn primary" onClick={props.onStart}>
