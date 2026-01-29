@@ -79,10 +79,11 @@ export function normalizeSkillSet(src: any): [string, string, string, string] {
   return padded.slice(0, 4) as [string, string, string, string];
 }
 
-export function trainingSpentToBonus(spent: Partial<Record<"hp" | "atk" | "def" | "spd", number>>) {
-  const hp = (spent.hp ?? 0) * TRAINING_STEP.hp;
-  const atk = (spent.atk ?? 0) * TRAINING_STEP.atk;
-  const def = (spent.def ?? 0) * TRAINING_STEP.def;
-  const spd = (spent.spd ?? 0) * TRAINING_STEP.spd;
+export function trainingSpentToBonus(spent?: Partial<Record<"hp" | "atk" | "def" | "spd", number>>) {
+  const s = spent ?? {};
+  const hp = (s.hp ?? 0) * TRAINING_STEP.hp;
+  const atk = (s.atk ?? 0) * TRAINING_STEP.atk;
+  const def = (s.def ?? 0) * TRAINING_STEP.def;
+  const spd = (s.spd ?? 0) * TRAINING_STEP.spd;
   return { hp, atk, def, spd };
 }
