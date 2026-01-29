@@ -25,6 +25,7 @@ export interface BalanceDef {
 export interface UnitDef {
   id: string;
   name: string;
+  portrait?: string;
   baseStats: Record<StatName, number>;
   growth: Record<StatName, number>;
   learnableSkillIds: string[];

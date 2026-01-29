@@ -14,7 +14,8 @@
       "unlockSkillIds": [
         "sk_def_down"
       ]
-    }
+    },
+    "bg": "/assets/bg/dojo.svg"
   },
   {
     "id": "b_demo_3v3",
@@ -39,6 +40,52 @@
       "unlockSkillIds": [
         "sk_power_strike"
       ]
-    }
+    },
+    "bg": "/assets/bg/arena.svg"
+  },
+  {
+    "id": "b_gatekeeper_1v1",
+    "format": "1v1",
+    "enemyTeam": [
+      {
+        "unitId": "u_knight",
+        "level": 2
+      }
+    ],
+    "aiProfileId": "ai_normal",
+    "rewards": {
+      "trainingPoints": 4,
+      "unlockSkillIds": [
+        "sk_def_up"
+      ]
+    },
+    "bg": "/assets/bg/dojo.svg"
+  },
+  {
+    "id": "b_rival_3v3",
+    "format": "3v3",
+    "enemyTeam": [
+      {
+        "unitId": "u_warrior",
+        "level": 2
+      },
+      {
+        "unitId": "u_mage",
+        "level": 2
+      },
+      {
+        "unitId": "u_bandit",
+        "level": 2
+      }
+    ],
+    "aiProfileId": "ai_normal",
+    "rewards": {
+      "trainingPoints": 8,
+      "unlockSkillIds": [
+        "sk_atk_down",
+        "sk_spd_up"
+      ]
+    },
+    "bg": "/assets/bg/cave.svg"
   }
 ]

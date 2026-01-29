@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ef4444"/>
+      <stop offset="1" stop-color="#f59e0b"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="28" fill="url(#g)"/>
+  <circle cx="128" cy="110" r="66" fill="#ffffff" opacity="0.16"/>
+  <path d="M86 80h84" stroke="#ffffff" stroke-width="14" stroke-linecap="round" opacity="0.85"/>
+  <path d="M92 110h72" stroke="#ffffff" stroke-width="14" stroke-linecap="round" opacity="0.85"/>
+  <path d="M104 140h48" stroke="#ffffff" stroke-width="14" stroke-linecap="round" opacity="0.85"/>
+  <text x="128" y="236" text-anchor="middle" font-family="system-ui, sans-serif" font-size="20" fill="#ffffff" opacity="0.95">戦士</text>
+</svg>

@@ -6,6 +6,7 @@ export interface BattleDef {
   enemyTeam: Array<{ unitId: string; level: number; skillSet?: string[] }>;
   aiProfileId: string;
   rewards: { trainingPoints: number; unlockSkillIds: string[] };
+  bg?: string;
 }
 
 export interface StoryDef {
@@ -13,6 +14,8 @@ export interface StoryDef {
   nodes: Array<{
     id: string;
     text: string;
+    bg?: string;
+    speaker?: { name: string; portrait?: string; unitId?: string };
     choices: Array<{ label: string; nextNodeId: string; battleId?: string; reward?: { trainingPoints?: number } }>;
   }>;
 }

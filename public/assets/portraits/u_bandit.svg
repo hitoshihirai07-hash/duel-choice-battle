@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#16a34a"/>
+      <stop offset="1" stop-color="#22c55e"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="28" fill="url(#g)"/>
+  <circle cx="128" cy="108" r="64" fill="#ffffff" opacity="0.18"/>
+  <rect x="80" y="92" width="96" height="30" rx="15" fill="#111827" opacity="0.35"/>
+  <path d="M92 152c14-12 26-18 36-18s22 6 36 18" fill="none" stroke="#ffffff" stroke-width="10" stroke-linecap="round" opacity="0.75"/>
+  <path d="M104 82l48 0" stroke="#ffffff" stroke-width="10" stroke-linecap="round" opacity="0.75"/>
+  <text x="128" y="236" text-anchor="middle" font-family="system-ui, sans-serif" font-size="20" fill="#ffffff" opacity="0.95">盗賊</text>
+</svg>

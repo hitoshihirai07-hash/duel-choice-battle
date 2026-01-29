@@ -27,7 +27,8 @@
       "sk_guard",
       "sk_atk_up",
       "sk_power_strike"
-    ]
+    ],
+    "portrait": "/assets/portraits/u_hero.svg"
   },
   {
     "id": "u_warrior",
@@ -56,7 +57,8 @@
       "sk_guard",
       "sk_def_up",
       "sk_power_strike"
-    ]
+    ],
+    "portrait": "/assets/portraits/u_warrior.svg"
   },
   {
     "id": "u_mage",
@@ -85,7 +87,8 @@
       "sk_guard",
       "sk_spd_up",
       "sk_focus"
-    ]
+    ],
+    "portrait": "/assets/portraits/u_mage.svg"
   },
   {
     "id": "u_knight",
@@ -114,7 +117,8 @@
       "sk_guard",
       "sk_def_up",
       "sk_def_down"
-    ]
+    ],
+    "portrait": "/assets/portraits/u_knight.svg"
   },
   {
     "id": "u_bandit",
@@ -143,6 +147,7 @@
       "sk_guard",
       "sk_spd_up",
       "sk_power_strike"
-    ]
+    ],
+    "portrait": "/assets/portraits/u_bandit.svg"
   }
 ]

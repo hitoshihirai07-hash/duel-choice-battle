@@ -79,3 +79,144 @@ button{
   border:1px solid #e5e7eb;
   font-size:12px;
 }
+
+/* --- Visuals / Story Scene --- */
+.stage{
+  position: relative;
+  height: 140px;
+  border-radius: 16px;
+  background-size: cover;
+  background-position: center;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+}
+.stageOverlay{
+  position: absolute;
+  inset: 0;
+  background: linear-gradient( to bottom, rgba(0,0,0,0.10), rgba(0,0,0,0.30) );
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 10px 12px;
+  color: white;
+}
+.stageTitle{ font-weight: 800; }
+.stageSub{ font-size: 12px; opacity: 0.9; }
+
+.storyScene{
+  position: relative;
+  min-height: 240px;
+  border-radius: 16px;
+  background-size: cover;
+  background-position: center;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+}
+.storyOverlay{
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 12px;
+}
+.dialogue{
+  background: rgba(255,255,255,0.92);
+  border: 1px solid rgba(17,24,39,0.10);
+  border-radius: 16px;
+  padding: 12px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+}
+.fadeIn{ animation: fadeIn 180ms ease-out; }
+@keyframes fadeIn{
+  from{ opacity: 0; transform: translateY(4px); }
+  to{ opacity: 1; transform: translateY(0); }
+}
+.speakerRow{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.speakerPortrait{
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  border: 1px solid rgba(17,24,39,0.15);
+  background: white;
+}
+.speakerName{
+  font-weight: 800;
+}
+.dialogueText{
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
+
+/* --- Units --- */
+.unitCardHeader{
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+}
+.unitCardTitle{
+  font-weight: 800;
+}
+.unitCardPortrait{
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+}
+
+.unitBox{
+  position: relative;
+  border-radius: 16px;
+}
+.unitTop{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.unitPortrait{
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  border: 1px solid rgba(17,24,39,0.12);
+  background: #fff;
+}
+.unitName{ font-weight: 800; }
+
+.unitBox.hit{
+  animation: hitFlash 220ms ease-out;
+}
+@keyframes hitFlash{
+  0%{ transform: translateX(0); filter: none; }
+  35%{ transform: translateX(-2px); filter: brightness(1.15); }
+  70%{ transform: translateX(2px); filter: brightness(1.05); }
+  100%{ transform: translateX(0); filter: none; }
+}
+
+.unitFloaters{
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.floater{
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  font-weight: 900;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.25);
+  animation: floatUp 850ms ease-out forwards;
+}
+.floater.dmg{ color: #ef4444; }
+.floater.heal{ color: #22c55e; }
+@keyframes floatUp{
+  from{ opacity: 0; transform: translateY(6px) scale(0.95); }
+  20%{ opacity: 1; transform: translateY(0) scale(1); }
+  to{ opacity: 0; transform: translateY(-18px) scale(1.05); }
+}

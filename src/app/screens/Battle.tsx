@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import type { GameData } from "../store/dataLoader";
 import type { Action, BattleFormat, BattleState, Side, UnitRef } from "../../engine/types";
 import { ENGINE_VERSION } from "../../engine/constants";
@@ -29,8 +29,20 @@ export default function Battle(props: {
   const battleDef = props.data.battles.find((b) => b.id === props.battleId);
   const aiProfile = props.data.ai.find((x) => x.id === (battleDef?.aiProfileId ?? "ai_normal")) as AiProfile | undefined;
 
+  const unitDefMap = useMemo(() => Object.fromEntries(props.data.units.map((u) => [u.id, u])), [props.data.units]);
+  const battleBg = battleDef?.bg || "/assets/bg/arena.svg";
+
   const [state, setState] = useState<BattleState | null>(null);
   const [selectedAction, setSelectedAction] = useState<Action | null>(null);
+
+  type Floater = { id: string; side: Side; slot: number; amount: number; kind: "dmg" | "heal" };
+  const [fx, setFx] = useState<{ floaters: Floater[]; flashKey: number; flashTarget: UnitRef | null }>({
+    floaters: [],
+    flashKey: 0,
+    flashTarget: null,
+  });
+  const prevEventsRef = useRef(0);
+  const floaterSeqRef = useRef(0);
 
   useEffect(() => {
     if (!battleDef) return;
@@ -72,8 +84,61 @@ export default function Battle(props: {
       teamB: { members: enemyMembers, activeSlot: 0 },
     });
     setState(s);
+    prevEventsRef.current = s.events.length;
+    setFx({ floaters: [], flashKey: 0, flashTarget: null });
     setSelectedAction(null);
   }, [props.battleId, props.format, props.save.roster]);
+
+  useEffect(() => {
+    if (!state) return;
+    const prev = prevEventsRef.current;
+    const newEvents = state.events.slice(prev);
+    if (newEvents.length === 0) return;
+    prevEventsRef.current = state.events.length;
+
+    const added: Floater[] = [];
+    let flashTarget: UnitRef | null = null;
+
+    for (const e of newEvents) {
+      if (e.kind === "DAMAGE") {
+        flashTarget = e.target;
+        added.push({
+          id: `f${Date.now()}_${++floaterSeqRef.current}`,
+          side: e.target.side,
+          slot: e.target.slot,
+          amount: e.amount,
+          kind: "dmg",
+        });
+      } else if (e.kind === "HEAL") {
+        flashTarget = e.target;
+        added.push({
+          id: `f${Date.now()}_${++floaterSeqRef.current}`,
+          side: e.target.side,
+          slot: e.target.slot,
+          amount: e.amount,
+          kind: "heal",
+        });
+      }
+    }
+
+    if (added.length || flashTarget) {
+      setFx((prevFx) => ({
+        floaters: [...prevFx.floaters, ...added],
+        flashKey: prevFx.flashKey + (flashTarget ? 1 : 0),
+        flashTarget: flashTarget ?? prevFx.flashTarget,
+      }));
+    }
+
+    for (const f of added) {
+      window.setTimeout(() => {
+        setFx((prevFx) => ({
+          ...prevFx,
+          floaters: prevFx.floaters.filter((x) => x.id !== f.id),
+        }));
+      }, 850);
+    }
+  }, [state]);
+
 
   if (!battleDef || !aiProfile) {
     return (
@@ -142,10 +207,25 @@ export default function Battle(props: {
 
         <div className="hr" />
 
+        <div className="stage" style={{ backgroundImage: `url(${battleBg})` }}>
+          <div className="stageOverlay">
+            <div className="stageTitle">{battleDef.id}</div>
+            <div className="stageSub">{props.format === "1v1" ? "1 vs 1" : "3 vs 3"}</div>
+          </div>
+        </div>
+
         <div className="row">
           <div className="col card">
             <div className="h2">あなた（A）</div>
-            <UnitPanel unit={myActive} />
+            <UnitPanel
+              unit={myActive}
+              unitDef={unitDefMap[myActive.unitId]}
+              side={mySide}
+              slot={myTeam.activeSlot}
+              floaters={fx.floaters.filter((f) => f.side === mySide && f.slot === myTeam.activeSlot)}
+              flashKey={fx.flashKey}
+              flashTarget={fx.flashTarget}
+            />
             {props.format === "3v3" ? (
               <>
                 <div className="hr" />
@@ -156,7 +236,15 @@ export default function Battle(props: {
 
           <div className="col card">
             <div className="h2">敵（B）</div>
-            <UnitPanel unit={enActive} />
+            <UnitPanel
+              unit={enActive}
+              unitDef={unitDefMap[enActive.unitId]}
+              side={enemySide}
+              slot={enTeam.activeSlot}
+              floaters={fx.floaters.filter((f) => f.side === enemySide && f.slot === enTeam.activeSlot)}
+              flashKey={fx.flashKey}
+              flashTarget={fx.flashTarget}
+            />
             {props.format === "3v3" ? (
               <>
                 <div className="hr" />
@@ -237,10 +325,36 @@ function actionToLabel(a: Action, skillMap: Record<string, any>): string {
   return "なし";
 }
 
-function UnitPanel(props: { unit: any }) {
+function UnitPanel(props: {
+  unit: any;
+  unitDef?: any;
+  side: Side;
+  slot: number;
+  floaters: { id: string; amount: number; kind: "dmg" | "heal" }[];
+  flashKey: number;
+  flashTarget: UnitRef | null;
+}) {
   const u = props.unit;
+  const name = props.unitDef?.name ?? u.unitId;
+  const portrait = props.unitDef?.portrait;
+
+  const [flashOn, setFlashOn] = React.useState(false);
+  React.useEffect(() => {
+    if (!props.flashTarget) return;
+    const match = props.flashTarget.side === props.side && props.flashTarget.slot === props.slot;
+    if (!match) return;
+    setFlashOn(true);
+    const t = window.setTimeout(() => setFlashOn(false), 220);
+    return () => window.clearTimeout(t);
+  }, [props.flashKey]);
+
   return (
-    <div>
+    <div className={"unitBox" + (flashOn ? " hit" : "")}>
+      <div className="unitTop">
+        {portrait ? <img className="unitPortrait" src={portrait} alt={name} loading="lazy" /> : null}
+        <div className="unitName">{name}</div>
+      </div>
+
       <div className="kv">
         <span className="pill">HP {u.hp}/{u.maxHp}</span>
         <span className="pill">SP {u.sp}</span>
@@ -252,10 +366,17 @@ function UnitPanel(props: { unit: any }) {
         {u.guard ? <span className="pill">ガード</span> : null}
         {u.charge ? <span className="pill">チャージ</span> : null}
       </div>
+
+      <div className="unitFloaters">
+        {props.floaters.map((f) => (
+          <div key={f.id} className={"floater " + (f.kind === "heal" ? "heal" : "dmg")}>
+            {f.kind === "heal" ? "+" : "-"}{f.amount}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
-
 function BenchPanel(props: {
   team: any;
   side: Side;

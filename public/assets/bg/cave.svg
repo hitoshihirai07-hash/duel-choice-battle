@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="360" viewBox="0 0 1200 360" preserveAspectRatio="none">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1020"/>
+      <stop offset="1" stop-color="#334155"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="360" fill="url(#g)"/>
+  <g opacity="0.18" fill="#ffffff">
+    <circle cx="100" cy="60" r="18"/>
+    <circle cx="180" cy="100" r="10"/>
+    <circle cx="280" cy="80" r="14"/>
+    <circle cx="1040" cy="70" r="16"/>
+    <circle cx="1120" cy="110" r="9"/>
+  </g>
+  <path d="M0 280c220-120 360-140 600-60s380 120 600 40v100H0z" fill="#111827" opacity="0.55"/>
+  <text x="24" y="332" font-family="system-ui, sans-serif" font-size="16" fill="#e5e7eb" opacity="0.85">CAVE</text>
+</svg>

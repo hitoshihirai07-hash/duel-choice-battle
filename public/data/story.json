@@ -3,49 +3,118 @@
   "nodes": [
     {
       "id": "n_start",
-      "text": "師匠「ここからは選択で進む試練だ。どっちへ行く？」",
+      "bg": "/assets/bg/forest.svg",
+      "speaker": {
+        "name": "師匠",
+        "portrait": "/assets/portraits/narrator.svg"
+      },
+      "text": "師匠「ここからは選択で進む試練だ。まずはどの道を選ぶ？」",
       "choices": [
         {
-          "label": "正面から挑む（1vs1）",
-          "nextNodeId": "n_after_1",
+          "label": "修行場へ（1vs1）",
+          "nextNodeId": "n_after_training",
           "battleId": "b_demo_1v1"
         },
         {
-          "label": "連戦の道へ（3vs3）",
-          "nextNodeId": "n_after_3",
+          "label": "連戦の間へ（3vs3）",
+          "nextNodeId": "n_after_training",
           "battleId": "b_demo_3v3"
+        },
+        {
+          "label": "森の小道へ（イベント）",
+          "nextNodeId": "n_forest_intro",
+          "reward": {
+            "trainingPoints": 1
+          }
         }
       ]
     },
     {
-      "id": "n_after_1",
-      "text": "師匠「よし。次はもっと難しい相手だ。」",
+      "id": "n_after_training",
+      "bg": "/assets/bg/dojo.svg",
+      "speaker": {
+        "name": "師匠",
+        "portrait": "/assets/portraits/narrator.svg"
+      },
+      "text": "師匠「いいぞ。勝っても負けても、学んだことを育成に回すんだ。」",
       "choices": [
         {
-          "label": "もう一度 1vs1",
-          "nextNodeId": "n_start",
+          "label": "もう一度 修行（1vs1）",
+          "nextNodeId": "n_after_training",
           "battleId": "b_demo_1v1"
         },
         {
-          "label": "3vs3 に挑戦",
-          "nextNodeId": "n_start",
+          "label": "連戦に挑む（3vs3）",
+          "nextNodeId": "n_after_training",
           "battleId": "b_demo_3v3"
+        },
+        {
+          "label": "森の小道へ",
+          "nextNodeId": "n_forest_intro"
         }
       ]
     },
     {
-      "id": "n_after_3",
-      "text": "師匠「いい勝負だった。編成と技で差がつくぞ。」",
+      "id": "n_forest_intro",
+      "bg": "/assets/bg/forest.svg",
+      "speaker": {
+        "name": "ナレーション",
+        "portrait": "/assets/portraits/narrator.svg"
+      },
+      "text": "森の奥から、不穏な気配がする。\n道は二つ…どちらへ進む？",
       "choices": [
         {
-          "label": "もう一度 3vs3",
-          "nextNodeId": "n_start",
-          "battleId": "b_demo_3v3"
+          "label": "奥へ進む（門番 1vs1）",
+          "nextNodeId": "n_after_gate",
+          "battleId": "b_gatekeeper_1v1"
         },
         {
-          "label": "1vs1 に戻る",
-          "nextNodeId": "n_start",
-          "battleId": "b_demo_1v1"
+          "label": "引き返す",
+          "nextNodeId": "n_start"
+        }
+      ]
+    },
+    {
+      "id": "n_after_gate",
+      "bg": "/assets/bg/dojo.svg",
+      "speaker": {
+        "name": "師匠",
+        "portrait": "/assets/portraits/narrator.svg"
+      },
+      "text": "師匠「門番を倒したか。次は“洞窟のライバル”だ。あいつは編成がうまい。」",
+      "choices": [
+        {
+          "label": "洞窟へ（ライバル 3vs3）",
+          "nextNodeId": "n_after_rival",
+          "battleId": "b_rival_3v3"
+        },
+        {
+          "label": "一旦 修行に戻る",
+          "nextNodeId": "n_after_training"
+        }
+      ]
+    },
+    {
+      "id": "n_after_rival",
+      "bg": "/assets/bg/cave.svg",
+      "speaker": {
+        "name": "ライバル",
+        "portrait": "/assets/portraits/u_bandit.svg"
+      },
+      "text": "ライバル「やるじゃん。…でも次は本気でいく。」",
+      "choices": [
+        {
+          "label": "もう一度挑む（3vs3）",
+          "nextNodeId": "n_after_rival",
+          "battleId": "b_rival_3v3"
+        },
+        {
+          "label": "修行に戻る",
+          "nextNodeId": "n_after_training"
+        },
+        {
+          "label": "タイトルに戻る",
+          "nextNodeId": "n_start"
         }
       ]
     }
