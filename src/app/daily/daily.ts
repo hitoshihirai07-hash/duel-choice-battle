@@ -81,6 +81,22 @@ export function makeDailyEnemyTeam(params: {
   });
 }
 
+/**
+ * Battle.tsx が使う「今日のデイリー相手」まとめ。
+ * - enemyTeam: BattleDef と同じ形（skillSet は任意）
+ * - bg: 背景SVGのパス
+ */
+export function getDailyEnemyTeam(
+  data: GameData,
+  format: BattleFormat,
+  dateKey: string
+): { enemyTeam: Array<{ unitId: string; level: number; skillSet?: string[] }>; bg: string } {
+  const base = makeDailyEnemyTeam({ data, format, dateKey });
+  const enemyTeam = base.map((x) => ({ unitId: x.unitId, level: x.level }));
+  const bg = format === "1v1" ? "/assets/bg/dojo.svg" : "/assets/bg/arena.svg";
+  return { enemyTeam, bg };
+}
+
 export function dailyBg(format: BattleFormat): string {
   return format === "1v1" ? "dojo" : "arena";
 }

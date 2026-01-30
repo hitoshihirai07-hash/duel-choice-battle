@@ -116,7 +116,7 @@ export default function Battle(props: {
 
     const enemyTeam = (isDaily ? dailyEnemy?.enemyTeam : battleDef.enemyTeam) ?? battleDef.enemyTeam;
     const enemyIds = enemyTeam.slice(0, teamSize);
-    const enemyMembers = enemyIds.map((e) => {
+    const enemyMembers = enemyIds.map((e: { unitId: string; level: number; skillSet?: string[] }) => {
       const u = unitMap[e.unitId];
       const inst = makeUnitInstance(u, e.level);
       if (e.skillSet && e.skillSet.length === 4) inst.skillSet = e.skillSet as any;
