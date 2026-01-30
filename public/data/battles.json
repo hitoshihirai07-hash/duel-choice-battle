@@ -38,7 +38,7 @@
     "rewards": {
       "trainingPoints": 6,
       "unlockSkillIds": [
-        "sk_power_strike"
+        "sk_atk_up2"
       ]
     },
     "bg": "/assets/bg/arena.svg"
@@ -56,7 +56,7 @@
     "rewards": {
       "trainingPoints": 4,
       "unlockSkillIds": [
-        "sk_def_up"
+        "sk_heal"
       ]
     },
     "bg": "/assets/bg/dojo.svg"
@@ -82,8 +82,9 @@
     "rewards": {
       "trainingPoints": 8,
       "unlockSkillIds": [
-        "sk_atk_down",
-        "sk_spd_up"
+        "sk_def_down2",
+        "sk_high_strike",
+        "sk_big_heal"
       ]
     },
     "bg": "/assets/bg/cave.svg"

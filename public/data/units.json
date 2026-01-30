@@ -20,7 +20,9 @@
       "sk_atk_up",
       "sk_def_down",
       "sk_power_strike",
-      "sk_def_up"
+      "sk_def_up",
+      "sk_atk_up2",
+      "sk_high_strike"
     ],
     "defaultSkillSet": [
       "sk_attack",
@@ -50,7 +52,10 @@
       "sk_guard",
       "sk_def_up",
       "sk_atk_down",
-      "sk_power_strike"
+      "sk_power_strike",
+      "sk_def_down2",
+      "sk_atk_up2",
+      "sk_high_strike"
     ],
     "defaultSkillSet": [
       "sk_attack",
@@ -80,7 +85,11 @@
       "sk_guard",
       "sk_spd_up",
       "sk_def_down",
-      "sk_focus"
+      "sk_focus",
+      "sk_spd_down",
+      "sk_def_down2",
+      "sk_heal",
+      "sk_big_heal"
     ],
     "defaultSkillSet": [
       "sk_attack",
@@ -110,7 +119,9 @@
       "sk_guard",
       "sk_def_up",
       "sk_def_down",
-      "sk_atk_up"
+      "sk_atk_up",
+      "sk_def_down2",
+      "sk_heal"
     ],
     "defaultSkillSet": [
       "sk_attack",
@@ -140,7 +151,10 @@
       "sk_guard",
       "sk_spd_up",
       "sk_atk_down",
-      "sk_power_strike"
+      "sk_power_strike",
+      "sk_spd_down",
+      "sk_high_strike",
+      "sk_atk_up2"
     ],
     "defaultSkillSet": [
       "sk_attack",

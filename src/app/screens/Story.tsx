@@ -74,9 +74,23 @@ export default function Story(props: {
                       // イベント報酬（今の実装だと、戦闘外の選択は“移動だけ”になりがちなので、
                       // ここで trainingPoints を少し付与できるようにしておく）
                       const tp = c.reward?.trainingPoints ?? 0;
+                      const unlock = (c.reward?.unlockSkillIds ?? []).filter((x) => typeof x === "string");
                       props.onUpdateSave((prev) => ({
                         ...prev,
                         resources: { ...prev.resources, trainingPoints: (prev.resources.trainingPoints ?? 0) + tp },
+                        roster:
+                          unlock.length === 0
+                            ? prev.roster
+                            : prev.roster.map((r) => {
+                                const u = props.data.units.find((x) => x.id === r.unitId);
+                                if (!u) return r;
+                                const learnable = new Set(u.learnableSkillIds);
+                                const current = new Set(r.unlockedSkillIds ?? []);
+                                for (const sid of unlock) {
+                                  if (learnable.has(sid)) current.add(sid);
+                                }
+                                return { ...r, unlockedSkillIds: Array.from(current) };
+                              }),
                         story: { ...prev.story, currentNodeId: c.nextNodeId },
                       }));
                     }}
@@ -85,6 +99,11 @@ export default function Story(props: {
                     {c.reward?.trainingPoints ? (
                       <span className="pill" style={{ marginLeft: 8 }}>
                         +{c.reward.trainingPoints}pt
+                      </span>
+                    ) : null}
+                    {c.reward?.unlockSkillIds?.length ? (
+                      <span className="pill" style={{ marginLeft: 8 }}>
+                        +技 {c.reward.unlockSkillIds.length}
                       </span>
                     ) : null}
                     {c.battleId && b ? (
@@ -96,6 +115,12 @@ export default function Story(props: {
                 );
               })}
             </div>
+
+            {node.choices.some((c) => c.reward?.unlockSkillIds?.length) ? (
+              <div className="small muted" style={{ marginTop: 10 }}>
+                ※「+技」は、その選択で習得できる技が増えることを意味します（習得済みは重複しません）
+              </div>
+            ) : null}
           </div>
         </div>
 

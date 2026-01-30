@@ -16,7 +16,12 @@ export interface StoryDef {
     text: string;
     bg?: string;
     speaker?: { name: string; portrait?: string; unitId?: string };
-    choices: Array<{ label: string; nextNodeId: string; battleId?: string; reward?: { trainingPoints?: number } }>;
+    choices: Array<{
+      label: string;
+      nextNodeId: string;
+      battleId?: string;
+      reward?: { trainingPoints?: number; unlockSkillIds?: string[] };
+    }>;
   }>;
 }
 

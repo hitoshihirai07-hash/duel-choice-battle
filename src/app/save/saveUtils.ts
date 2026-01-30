@@ -8,6 +8,21 @@ export const TRAINING_STEP = {
   spd: 1,
 } as const;
 
+function uniqueStrings(xs: string[]) {
+  return Array.from(new Set(xs.filter((x) => typeof x === "string" && x.length > 0)));
+}
+
+/**
+ * 新規開始時の「習得済みスキル」
+ * - デフォルト4枠だけを習得済みにする（= 成長で解放する余地を作る）
+ * - learnableSkillIds の範囲に収める
+ */
+function initialUnlockedSkillIds(u: { learnableSkillIds: string[]; defaultSkillSet: string[] }) {
+  const learnable = new Set(Array.isArray(u.learnableSkillIds) ? u.learnableSkillIds : []);
+  const base = uniqueStrings([...(Array.isArray(u.defaultSkillSet) ? u.defaultSkillSet : []), "sk_attack", "sk_guard"]);
+  return base.filter((id) => learnable.has(id));
+}
+
 export function createDefaultSave(data: GameData): SaveDataV1 {
   const now = Date.now();
 
@@ -19,7 +34,8 @@ export function createDefaultSave(data: GameData): SaveDataV1 {
       unitId: u.id,
       level: 1,
       trainingPointsSpent: { hp: 0, atk: 0, def: 0, spd: 0 },
-      unlockedSkillIds: [...u.learnableSkillIds],
+      // 最初から全部解放すると成長の意味が薄いので、初期は「デフォルト4枠のみ習得」
+      unlockedSkillIds: initialUnlockedSkillIds(u),
       equippedSkillSet: normalizeSkillSet(u.defaultSkillSet),
     })),
     resources: { trainingPoints: 0 },
@@ -37,7 +53,8 @@ export function normalizeSave(data: GameData, loaded: SaveDataV1): SaveDataV1 {
         unitId: u.id,
         level: 1,
         trainingPointsSpent: { hp: 0, atk: 0, def: 0, spd: 0 },
-        unlockedSkillIds: [...u.learnableSkillIds],
+        // 新ユニット追加時も、最初はデフォルト枠のみ習得に揃える
+        unlockedSkillIds: initialUnlockedSkillIds(u),
         equippedSkillSet: normalizeSkillSet(u.defaultSkillSet),
       };
     }

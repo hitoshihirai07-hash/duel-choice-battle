@@ -24,7 +24,10 @@
           "label": "森の小道へ（イベント）",
           "nextNodeId": "n_forest_intro",
           "reward": {
-            "trainingPoints": 1
+            "trainingPoints": 2,
+            "unlockSkillIds": [
+              "sk_spd_down"
+            ]
           }
         }
       ]

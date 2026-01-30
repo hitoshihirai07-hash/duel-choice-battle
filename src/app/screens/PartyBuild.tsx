@@ -113,6 +113,7 @@ export default function PartyBuild(props: {
               selectedUnits.map((u) => {
                 const rosterEntry = props.save.roster.find((r) => r.unitId === u.id);
                 const unlocked = new Set(rosterEntry?.unlockedSkillIds ?? u.learnableSkillIds);
+                const lockedIds = u.learnableSkillIds.filter((id) => !unlocked.has(id));
                 const learnables = u.learnableSkillIds
                   .filter((id) => unlocked.has(id))
                   .map((id) => skillById[id])
@@ -125,7 +126,7 @@ export default function PartyBuild(props: {
                       <div className="h2" style={{ margin: 0 }}>
                         {u.name}
                       </div>
-                      <span className="pill">learn {learnables.length}</span>
+                      <span className="pill">skills {learnables.length}/{u.learnableSkillIds.length}</span>
                     </div>
                     <div className="hr" />
                     <div className="grid2">
@@ -150,9 +151,15 @@ export default function PartyBuild(props: {
                       ))}
                     </div>
                     <div className="hr" />
-                    <div className="small muted">
-                      ※この画面のセット内容がバトルで反映されます（敵もデータで指定可能）
-                    </div>
+                    {lockedIds.length ? (
+                      <div className="small muted" style={{ lineHeight: 1.6 }}>
+                        未習得: {lockedIds.map((id) => (skillById[id]?.name ? skillById[id].name : id)).join(" / ")}
+                        <br />
+                        ※勝利やイベントで技が解放されます（解放された技はここでセットできます）
+                      </div>
+                    ) : (
+                      <div className="small muted">※このユニットは全技を習得済みです</div>
+                    )}
                   </div>
                 );
               })

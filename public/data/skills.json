@@ -109,5 +109,68 @@
     "durationTurns": 1,
     "cooldown": 3,
     "spCost": 0
+  },
+  {
+    "id": "sk_atk_up2",
+    "name": "バイキルト",
+    "type": "buff",
+    "fx": "buff",
+    "target": "self",
+    "buff": { "stat": "atk", "delta": 2 },
+    "cooldown": 5,
+    "spCost": 10
+  },
+  {
+    "id": "sk_def_down2",
+    "name": "強ルカニ",
+    "type": "debuff",
+    "fx": "debuff",
+    "target": "enemyActive",
+    "debuff": { "stat": "def", "delta": -2 },
+    "hit": 0.75,
+    "cooldown": 5,
+    "spCost": 10
+  },
+  {
+    "id": "sk_spd_down",
+    "name": "ボミオス",
+    "type": "debuff",
+    "fx": "debuff",
+    "target": "enemyActive",
+    "debuff": { "stat": "spd", "delta": -1 },
+    "hit": 0.85,
+    "cooldown": 2,
+    "spCost": 0
+  },
+  {
+    "id": "sk_heal",
+    "name": "やくそう",
+    "type": "heal",
+    "fx": "glow",
+    "target": "self",
+    "healPct": 0.3,
+    "cooldown": 3,
+    "spCost": 0
+  },
+  {
+    "id": "sk_big_heal",
+    "name": "ベホイミ",
+    "type": "heal",
+    "fx": "glow",
+    "target": "self",
+    "healPct": 0.45,
+    "cooldown": 5,
+    "spCost": 12
+  },
+  {
+    "id": "sk_high_strike",
+    "name": "必殺斬り",
+    "type": "attack",
+    "fx": "impact",
+    "target": "enemyActive",
+    "power": 1.55,
+    "hit": 0.86,
+    "cooldown": 4,
+    "spCost": 30
   }
 ]

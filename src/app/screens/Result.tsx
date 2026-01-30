@@ -37,10 +37,12 @@ async function loadImage(src: string) {
 
 export default function Result(props: {
   summary: BattleSummary | null;
+  rewards?: { trainingPoints: number; unlockSkillNames: string[] } | null;
   onContinue: () => void;
   onBack: () => void;
 }) {
   const { summary } = props;
+  const rewards = props.rewards ?? null;
   const [imgUrl, setImgUrl] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -216,6 +218,28 @@ export default function Result(props: {
       <p className="muted">
         {summary.format.toUpperCase()} / ターン {summary.turns} / {summary.battleId}
       </p>
+
+      {youWin && rewards ? (
+        <div className="card" style={{ marginTop: 12 }}>
+          <div className="row" style={{ justifyContent: "space-between" }}>
+            <div>
+              <b>報酬</b>
+            </div>
+          </div>
+          <div className="small muted" style={{ marginTop: 6 }}>
+            育成ポイント +{rewards.trainingPoints}
+          </div>
+          {rewards.unlockSkillNames.length ? (
+            <div className="small" style={{ marginTop: 6 }}>
+              新たに解放: {rewards.unlockSkillNames.join(" / ")}（編成でセット可能）
+            </div>
+          ) : (
+            <div className="small muted" style={{ marginTop: 6 }}>
+              技解放: なし（習得済みの場合は自動でスキップ）
+            </div>
+          )}
+        </div>
+      ) : null}
 
       <div className="row" style={{ gap: 10, flexWrap: "wrap" }}>
         <button className="btn" onClick={generateCard} disabled={generating}>

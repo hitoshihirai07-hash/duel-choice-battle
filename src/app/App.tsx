@@ -20,8 +20,9 @@ export default function App() {
 
   const [lastBattle, setLastBattle] = useState<BattleSummary | null>(null);
   const [afterResult, setAfterResult] = useState<Screen | null>(null);
+  const [lastRewards, setLastRewards] = useState<{ trainingPoints: number; unlockSkillNames: string[] } | null>(null);
 
-const [activeSlot, setActiveSlot] = useState<1 | 2 | 3>(() => {
+  const [activeSlot, setActiveSlot] = useState<1 | 2 | 3>(() => {
     try {
       const raw = localStorage.getItem(ACTIVE_SLOT_KEY);
       return clampSlot(raw ? Number(raw) : 1);
@@ -348,6 +349,31 @@ const [activeSlot, setActiveSlot] = useState<1 | 2 | 3>(() => {
               const tp = b?.rewards?.trainingPoints ?? 0;
               const unlock = b?.rewards?.unlockSkillIds ?? [];
 
+              // 「今回 新しく解放された」技だけ抽出（既に習得済みならスキップ）
+              const newlyUnlocked: string[] = (() => {
+                if (!unlock.length || !save) return unlock;
+                const unitById = new Map(data.units.map((u) => [u.id, u] as const));
+                return unlock.filter((sid) => {
+                  let canLearn = false;
+                  let allAlready = true;
+                  for (const r of save.roster) {
+                    const ud = unitById.get(r.unitId);
+                    if (!ud) continue;
+                    if (!ud.learnableSkillIds.includes(sid)) continue;
+                    canLearn = true;
+                    if (!(r.unlockedSkillIds ?? []).includes(sid)) {
+                      allAlready = false;
+                      break;
+                    }
+                  }
+                  return canLearn && !allAlready;
+                });
+              })();
+
+              const skillById = new Map(data.skills.map((s) => [s.id, s] as const));
+              const names = newlyUnlocked.map((id) => skillById.get(id)?.name ?? id);
+              setLastRewards({ trainingPoints: tp, unlockSkillNames: names });
+
               updateSave((prev) => {
                 let next = {
                   ...prev,
@@ -376,6 +402,8 @@ const [activeSlot, setActiveSlot] = useState<1 | 2 | 3>(() => {
                 }
                 return next;
               });
+            } else {
+              setLastRewards(null);
             }
 
             api.go({ name: "result" });
@@ -387,6 +415,7 @@ const [activeSlot, setActiveSlot] = useState<1 | 2 | 3>(() => {
       return (
         <Result
           summary={lastBattle}
+          rewards={lastRewards}
           onContinue={() => {
             api.go(afterResult ?? { name: "mode" });
           }}
