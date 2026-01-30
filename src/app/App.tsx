@@ -3,6 +3,7 @@ import { loadGameData, type GameData } from "./store/dataLoader";
 import type { Screen } from "./store/gameStore";
 import Title from "./screens/Title";
 import ModeSelect from "./screens/ModeSelect";
+import Daily from "./screens/Daily";
 import PartyBuild from "./screens/PartyBuild";
 import Story from "./screens/Story";
 import Battle from "./screens/Battle";
@@ -12,6 +13,7 @@ import Result, { type BattleSummary } from "./screens/Result";
 import { ACTIVE_SLOT_KEY, SLOT_COUNT, clampSlot, createLocalStorageAdapter, getBackupKey, getSaveKey } from "./save/localStorageAdapter";
 import type { SaveDataV1 } from "./save/saveAdapter";
 import { createDefaultSave, normalizeSave } from "./save/saveUtils";
+import { dailyRewardPoints, getJstDateKey, isDailyBattleId, isYesterdayJst } from "./daily/daily";
 
 export default function App() {
   const [data, setData] = useState<GameData | null>(null);
@@ -20,7 +22,7 @@ export default function App() {
 
   const [lastBattle, setLastBattle] = useState<BattleSummary | null>(null);
   const [afterResult, setAfterResult] = useState<Screen | null>(null);
-  const [lastRewards, setLastRewards] = useState<{ trainingPoints: number; unlockSkillNames: string[] } | null>(null);
+  const [lastRewards, setLastRewards] = useState<{ trainingPoints: number; unlockSkillNames: string[]; message?: string } | null>(null);
 
   const [activeSlot, setActiveSlot] = useState<1 | 2 | 3>(() => {
     try {
@@ -264,8 +266,18 @@ export default function App() {
         <ModeSelect
           onStory={() => api.go({ name: "story" })}
           onFreeBattle={(format) => api.go({ name: "party", format, fromStory: false })}
-            onTraining={() => api.go({ name: "training", returnTo: "mode" })}
+          onDaily={() => api.go({ name: "daily" })}
+          onTraining={() => api.go({ name: "training", returnTo: "mode" })}
           onBack={() => api.go({ name: "title" })}
+        />
+      );
+    case "daily":
+      return (
+        <Daily
+          data={data}
+          save={save}
+          onStart={(format, battleId) => api.go({ name: "party", format, fromStory: false, battleId })}
+          onBack={() => api.go({ name: "mode" })}
         />
       );
     case "story":
@@ -291,7 +303,10 @@ export default function App() {
           onStartBattle={(battleId, nextStoryNodeId) =>
             api.go({ name: "battle", battleId, format: screen.format, fromStory: screen.fromStory, nextStoryNodeId })
           }
-          onBack={() => api.go(screen.fromStory ? { name: "story" } : { name: "mode" })}
+          onBack={() => {
+            if (!screen.fromStory && screen.battleId && isDailyBattleId(screen.battleId)) return api.go({ name: "daily" });
+            return api.go(screen.fromStory ? { name: "story" } : { name: "mode" });
+          }}
           battleId={screen.battleId}
           nextStoryNodeId={screen.nextStoryNodeId}
         />
@@ -335,19 +350,32 @@ export default function App() {
               // ignore
             }
 
+            const isDaily = isDailyBattleId(screen.battleId);
             const nextScreen: Screen =
               result.winner === "A"
-                ? { name: "training", returnTo: screen.fromStory ? "story" : "mode" }
+                ? {
+                    name: "training",
+                    returnTo: screen.fromStory ? "story" : isDaily ? "daily" : "mode",
+                  }
                 : screen.fromStory
                   ? { name: "story" }
-                  : { name: "mode" };
+                  : isDaily
+                    ? { name: "daily" }
+                    : { name: "mode" };
             setAfterResult(nextScreen);
 
             if (result.winner === "A") {
-              // 勝利報酬
               const b = data.battles.find((x) => x.id === screen.battleId);
-              const tp = b?.rewards?.trainingPoints ?? 0;
-              const unlock = b?.rewards?.unlockSkillIds ?? [];
+
+              // デイリーは「日付×形式」で 1 回だけ報酬
+              const daily = isDailyBattleId(screen.battleId);
+              const todayKey = daily ? getJstDateKey() : "";
+              const dailyKey = screen.format === "1v1" ? "v1" : "v3";
+              const alreadyClaimed =
+                daily && !!(save?.daily?.claimed?.[todayKey] as any)?.[dailyKey];
+
+              const tp = daily ? (alreadyClaimed ? 0 : dailyRewardPoints(screen.format)) : b?.rewards?.trainingPoints ?? 0;
+              const unlock = daily ? [] : b?.rewards?.unlockSkillIds ?? [];
 
               // 「今回 新しく解放された」技だけ抽出（既に習得済みならスキップ）
               const newlyUnlocked: string[] = (() => {
@@ -372,13 +400,45 @@ export default function App() {
 
               const skillById = new Map(data.skills.map((s) => [s.id, s] as const));
               const names = newlyUnlocked.map((id) => skillById.get(id)?.name ?? id);
-              setLastRewards({ trainingPoints: tp, unlockSkillNames: names });
+              const message = daily
+                ? alreadyClaimed
+                  ? "デイリー報酬は受け取り済み（今日は +0pt）"
+                  : `デイリー報酬 +${tp}pt を獲得！`
+                : undefined;
+              setLastRewards({ trainingPoints: tp, unlockSkillNames: names, message });
 
               updateSave((prev) => {
                 let next = {
                   ...prev,
                   resources: { trainingPoints: (prev.resources.trainingPoints ?? 0) + tp },
                 };
+
+                // デイリー達成記録（形式ごと）＋連続日数
+                if (daily) {
+                  const tk = todayKey;
+                  const dv = next.daily ?? { claimed: {}, streak: 0 };
+                  const beforeToday = dv.claimed?.[tk] ?? {};
+                  const hadClearedToday = !!((beforeToday as any).v1 || (beforeToday as any).v3);
+
+                  const afterToday = { ...beforeToday, [dailyKey]: true } as any;
+                  const claimed = { ...(dv.claimed ?? {}), [tk]: afterToday };
+
+                  // その日の "初" クリアのときだけ streak 更新
+                  let streak = dv.streak ?? 0;
+                  let lastClearedDate = dv.lastClearedDate;
+                  if (!hadClearedToday && (tp > 0 || !alreadyClaimed)) {
+                    if (lastClearedDate === tk) {
+                      // noop
+                    } else if (lastClearedDate && isYesterdayJst(lastClearedDate, tk)) {
+                      streak = Math.max(1, streak + 1);
+                    } else {
+                      streak = 1;
+                    }
+                    lastClearedDate = tk;
+                  }
+
+                  next = { ...next, daily: { claimed, streak, lastClearedDate } };
+                }
 
                 // 技解放（習得可能なユニットだけ）
                 if (unlock.length) {
@@ -408,7 +468,10 @@ export default function App() {
 
             api.go({ name: "result" });
           }}
-          onExit={() => api.go(screen.fromStory ? { name: "story" } : { name: "mode" })}
+          onExit={() => {
+            if (!screen.fromStory && isDailyBattleId(screen.battleId)) return api.go({ name: "daily" });
+            return api.go(screen.fromStory ? { name: "story" } : { name: "mode" });
+          }}
         />
       );
     case "result":
@@ -420,7 +483,9 @@ export default function App() {
             api.go(afterResult ?? { name: "mode" });
           }}
           onBack={() => {
-            api.go({ name: "mode" });
+            if (lastBattle?.fromStory) return api.go({ name: "story" });
+            if (lastBattle?.battleId && isDailyBattleId(lastBattle.battleId)) return api.go({ name: "daily" });
+            return api.go({ name: "mode" });
           }}
         />
       );

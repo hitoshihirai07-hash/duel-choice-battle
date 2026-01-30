@@ -11,6 +11,16 @@ export interface SaveDataV1 {
   }>;
   resources: { trainingPoints: number };
   settings: { textSpeed: number; sfx: number; bgm: number };
+
+  /**
+   * デイリーチャレンジ
+   * - claimed は JST の日付キー（YYYY-MM-DD）で管理
+   */
+  daily?: {
+    claimed: Record<string, { v1?: boolean; v3?: boolean }>; // v1=1v1, v3=3v3
+    streak: number;
+    lastClearedDate?: string; // YYYY-MM-DD (JST)
+  };
 }
 
 export interface SaveAdapter {

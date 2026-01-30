@@ -7,6 +7,8 @@ export interface BattleDef {
   aiProfileId: string;
   rewards: { trainingPoints: number; unlockSkillIds: string[] };
   bg?: string;
+  /** デイリーチャレンジ用（任意） */
+  daily?: boolean;
 }
 
 export interface StoryDef {

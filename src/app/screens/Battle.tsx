@@ -8,6 +8,7 @@ import { chooseAiAction, type AiProfile } from "../../engine/ai";
 import type { SaveDataV1 } from "../save/saveAdapter";
 import { trainingSpentToBonus } from "../save/saveUtils";
 import FxOverlay, { type FxKind } from "../components/FxOverlay";
+import { getDailyEnemyTeam, getJstDateKey, isDailyBattleId } from "../daily/daily";
 
 function other(side: Side): Side {
   return side === "A" ? "B" : "A";
@@ -31,7 +32,11 @@ export default function Battle(props: {
   const aiProfile = props.data.ai.find((x) => x.id === (battleDef?.aiProfileId ?? "ai_normal")) as AiProfile | undefined;
 
   const unitDefMap = useMemo(() => Object.fromEntries(props.data.units.map((u) => [u.id, u])), [props.data.units]);
-  const battleBg = battleDef?.bg || "/assets/bg/arena.svg";
+
+  const isDaily = isDailyBattleId(props.battleId) || !!battleDef?.daily;
+  const todayKey = useMemo(() => (isDaily ? getJstDateKey() : ""), [isDaily]);
+  const dailyEnemy = useMemo(() => (isDaily ? getDailyEnemyTeam(props.data, props.format, todayKey) : null), [isDaily, props.data, props.format, todayKey]);
+  const battleBg = (isDaily ? dailyEnemy?.bg : battleDef?.bg) || "/assets/bg/arena.svg";
 
   const [state, setState] = useState<BattleState | null>(null);
   const [selectedAction, setSelectedAction] = useState<Action | null>(null);
@@ -109,7 +114,8 @@ export default function Battle(props: {
       return inst;
     });
 
-    const enemyIds = battleDef.enemyTeam.slice(0, teamSize);
+    const enemyTeam = (isDaily ? dailyEnemy?.enemyTeam : battleDef.enemyTeam) ?? battleDef.enemyTeam;
+    const enemyIds = enemyTeam.slice(0, teamSize);
     const enemyMembers = enemyIds.map((e) => {
       const u = unitMap[e.unitId];
       const inst = makeUnitInstance(u, e.level);
@@ -117,7 +123,7 @@ export default function Battle(props: {
       return inst;
     });
 
-    const seed = Math.floor(Math.random() * 1e9);
+    const seed = isDaily ? Number(todayKey.replace(/-/g, "")) + (props.format === "3v3" ? 3 : 1) : Math.floor(Math.random() * 1e9);
 
     const s = initBattle({
       engineVersion: ENGINE_VERSION,
@@ -130,7 +136,7 @@ export default function Battle(props: {
     prevEventsRef.current = s.events.length;
     setFx({ floaters: [], bursts: [], flashKey: 0, flashTarget: null });
     setSelectedAction(null);
-  }, [props.battleId, props.format, props.save.roster]);
+  }, [props.battleId, props.format, props.save.roster, isDaily, todayKey, dailyEnemy]);
 
   useEffect(() => {
     if (!state) return;
@@ -303,7 +309,7 @@ export default function Battle(props: {
 
         <div className="stage" style={{ backgroundImage: `url(${battleBg})` }}>
           <div className="stageOverlay">
-            <div className="stageTitle">{battleDef.id}</div>
+            <div className="stageTitle">{isDaily ? `デイリーチャレンジ（${todayKey}）` : battleDef.id}</div>
             <div className="stageSub">{props.format === "1v1" ? "1 vs 1" : "3 vs 3"}</div>
           </div>
         </div>

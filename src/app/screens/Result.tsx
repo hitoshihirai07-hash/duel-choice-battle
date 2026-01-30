@@ -37,7 +37,7 @@ async function loadImage(src: string) {
 
 export default function Result(props: {
   summary: BattleSummary | null;
-  rewards?: { trainingPoints: number; unlockSkillNames: string[] } | null;
+  rewards?: { trainingPoints: number; unlockSkillNames: string[]; message?: string } | null;
   onContinue: () => void;
   onBack: () => void;
 }) {
@@ -229,6 +229,11 @@ export default function Result(props: {
           <div className="small muted" style={{ marginTop: 6 }}>
             育成ポイント +{rewards.trainingPoints}
           </div>
+          {rewards.message ? (
+            <div className="small" style={{ marginTop: 6 }}>
+              {rewards.message}
+            </div>
+          ) : null}
           {rewards.unlockSkillNames.length ? (
             <div className="small" style={{ marginTop: 6 }}>
               新たに解放: {rewards.unlockSkillNames.join(" / ")}（編成でセット可能）

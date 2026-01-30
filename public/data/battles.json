@@ -88,5 +88,47 @@
       ]
     },
     "bg": "/assets/bg/cave.svg"
+  },
+  {
+    "id": "b_daily_1v1",
+    "format": "1v1",
+    "daily": true,
+    "enemyTeam": [
+      {
+        "unitId": "u_bandit",
+        "level": 1
+      }
+    ],
+    "aiProfileId": "ai_normal",
+    "rewards": {
+      "trainingPoints": 0,
+      "unlockSkillIds": []
+    },
+    "bg": "/assets/bg/dojo.svg"
+  },
+  {
+    "id": "b_daily_3v3",
+    "format": "3v3",
+    "daily": true,
+    "enemyTeam": [
+      {
+        "unitId": "u_bandit",
+        "level": 2
+      },
+      {
+        "unitId": "u_mage",
+        "level": 2
+      },
+      {
+        "unitId": "u_knight",
+        "level": 2
+      }
+    ],
+    "aiProfileId": "ai_normal",
+    "rewards": {
+      "trainingPoints": 0,
+      "unlockSkillIds": []
+    },
+    "bg": "/assets/bg/arena.svg"
   }
 ]

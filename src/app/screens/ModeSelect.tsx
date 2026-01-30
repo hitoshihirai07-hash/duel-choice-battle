@@ -4,6 +4,7 @@ import type { BattleFormat } from "../../engine/types";
 export default function ModeSelect(props: {
   onStory: () => void;
   onFreeBattle: (format: BattleFormat) => void;
+  onDaily: () => void;
   onTraining: () => void;
   onBack: () => void;
 }) {
@@ -35,6 +36,15 @@ export default function ModeSelect(props: {
                 育成（ポイント振り）
               </button>
             </div>
+          </div>
+
+          <div className="col card">
+            <div className="h2">デイリーチャレンジ</div>
+            <div className="muted">1日1回の報酬つきバトル（1vs1 / 3vs3）。</div>
+            <div className="hr" />
+            <button className="btn primary" onClick={props.onDaily}>
+              デイリーへ
+            </button>
           </div>
         </div>
 

@@ -40,6 +40,7 @@ export function createDefaultSave(data: GameData): SaveDataV1 {
     })),
     resources: { trainingPoints: 0 },
     settings: { textSpeed: 1, sfx: 1, bgm: 1 },
+    daily: { claimed: {}, streak: 0, lastClearedDate: undefined },
   };
 }
 
@@ -85,6 +86,11 @@ export function normalizeSave(data: GameData, loaded: SaveDataV1): SaveDataV1 {
       textSpeed: loaded.settings?.textSpeed ?? 1,
       sfx: loaded.settings?.sfx ?? 1,
       bgm: loaded.settings?.bgm ?? 1,
+    },
+    daily: {
+      claimed: loaded.daily?.claimed ?? {},
+      streak: loaded.daily?.streak ?? 0,
+      lastClearedDate: loaded.daily?.lastClearedDate,
     },
   };
 }
