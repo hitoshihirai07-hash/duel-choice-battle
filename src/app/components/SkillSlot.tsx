@@ -1,31 +1,30 @@
 import React from "react";
-import type { SkillDef } from "../../engine/types";
+import type { SkillDef } from "../../engine/data";
+import { ensureAudio, playSfx } from "../sound/sound";
 
 export default function SkillSlot(props: {
-  slotIndex: number;
-  skill: SkillDef | null;
+  label: string;
   options: SkillDef[];
-  onChange: (skillId: string) => void;
+  value: string;
+  onChange: (id: string) => void;
 }) {
   return (
-    <div className="card">
-      <div className="kv">
-        <span className="badge">枠 {props.slotIndex + 1}</span>
-        <span className="pill">{props.skill?.name ?? "未設定"}</span>
-      </div>
-      <div className="hr" />
+    <div className="kv">
+      <span className="muted" style={{ width: 96 }}>
+        {props.label}
+      </span>
       <select
-        className="btn"
-        style={{ width: "100%" }}
-        value={props.skill?.id ?? ""}
-        onChange={(e) => props.onChange(e.target.value)}
+        className="input"
+        value={props.value}
+        onChange={(e) => {
+          void ensureAudio();
+          playSfx("select");
+          props.onChange(e.target.value);
+        }}
       >
-        <option value="" disabled>
-          えらぶ…
-        </option>
         {props.options.map((s) => (
           <option key={s.id} value={s.id}>
-            {s.name}（{s.type}）
+            {s.name}
           </option>
         ))}
       </select>

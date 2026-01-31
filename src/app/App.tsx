@@ -14,6 +14,7 @@ import { ACTIVE_SLOT_KEY, SLOT_COUNT, clampSlot, createLocalStorageAdapter, getB
 import type { SaveDataV1 } from "./save/saveAdapter";
 import { createDefaultSave, normalizeSave } from "./save/saveUtils";
 import { dailyRewardPoints, getJstDateKey, isDailyBattleId, isYesterdayJst } from "./daily/daily";
+import { applySettings as applySoundSettings, ensureAudio, startBgm, stopBgm } from "./sound/sound";
 
 export default function App() {
   const [data, setData] = useState<GameData | null>(null);
@@ -71,6 +72,28 @@ export default function App() {
     if (!save || !saveReady) return;
     void saveAdapter.save(save);
   }, [save, saveReady]);
+
+  // サウンド設定（BGM/SE）を反映
+  useEffect(() => {
+    if (!saveReady || !save) return;
+    const sfx = save.settings?.sfx ?? 1;
+    const bgm = save.settings?.bgm ?? 1;
+    applySoundSettings({ sfx, bgm });
+    if (bgm <= 0.001) stopBgm();
+  }, [saveReady, save?.settings?.sfx, save?.settings?.bgm]);
+
+  // 最初のユーザー操作で音を有効化（自動再生制限対策）
+  useEffect(() => {
+    const handler = () => {
+      void ensureAudio().then((ok) => {
+        if (!ok) return;
+        const bgm = save?.settings?.bgm ?? 1;
+        if (bgm > 0.001) startBgm();
+      });
+    };
+    window.addEventListener("pointerdown", handler, { once: true });
+    return () => window.removeEventListener("pointerdown", handler);
+  }, [save?.settings?.bgm]);
 
   const updateSave = (fn: (prev: SaveDataV1) => SaveDataV1) => {
     setSave((prev) => {
@@ -264,6 +287,19 @@ export default function App() {
     case "mode":
       return (
         <ModeSelect
+          settings={{
+            sfx: save?.settings?.sfx ?? 1,
+            bgm: save?.settings?.bgm ?? 1,
+          }}
+          onUpdateSettings={(patch) =>
+            updateSave((prev) => ({
+              ...prev,
+              settings: {
+                ...(prev.settings ?? { textSpeed: 1, sfx: 1, bgm: 1 }),
+                ...patch,
+              },
+            }))
+          }
           onStory={() => api.go({ name: "story" })}
           onFreeBattle={(format) => api.go({ name: "party", format, fromStory: false })}
           onDaily={() => api.go({ name: "daily" })}

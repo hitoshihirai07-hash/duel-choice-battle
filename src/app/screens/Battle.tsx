@@ -9,6 +9,7 @@ import type { SaveDataV1 } from "../save/saveAdapter";
 import { trainingSpentToBonus } from "../save/saveUtils";
 import FxOverlay, { type FxKind } from "../components/FxOverlay";
 import { getDailyEnemyTeam, getJstDateKey, isDailyBattleId } from "../daily/daily";
+import { ensureAudio, playSfx } from "../sound/sound";
 
 function other(side: Side): Side {
   return side === "A" ? "B" : "A";
@@ -148,6 +149,11 @@ export default function Battle(props: {
     const added: Floater[] = [];
     const addedBursts: Burst[] = [];
     let flashTarget: UnitRef | null = null;
+
+    // そのターン内で一回だけ鳴らす（過剰連打を避ける）
+    let didDamage = false;
+    let didHeal = false;
+    let didBuff = false;
     const lastSkillBySide: Partial<Record<Side, string>> = {};
 
     for (const e of newEvents) {
@@ -156,6 +162,7 @@ export default function Battle(props: {
       }
 
       if (e.kind === "DAMAGE") {
+        didDamage = true;
         flashTarget = e.target;
         // ダメージ発生時に技エフェクト（攻撃系）
         addedBursts.push({
@@ -172,6 +179,7 @@ export default function Battle(props: {
           kind: "dmg",
         });
       } else if (e.kind === "HEAL") {
+        didHeal = true;
         flashTarget = e.target;
         addedBursts.push({
           id: `b${Date.now()}_${++burstSeqRef.current}`,
@@ -187,6 +195,7 @@ export default function Battle(props: {
           kind: "heal",
         });
       } else if (e.kind === "STAGE") {
+        didBuff = true;
         // バフ/デバフは STAGE で確定した時だけ演出
         addedBursts.push({
           id: `b${Date.now()}_${++burstSeqRef.current}`,
@@ -195,6 +204,7 @@ export default function Battle(props: {
           kind: e.delta > 0 ? "buff" : "debuff",
         });
       } else if (e.kind === "GUARD_SET") {
+        didBuff = true;
         addedBursts.push({
           id: `b${Date.now()}_${++burstSeqRef.current}`,
           side: e.target.side,
@@ -202,6 +212,7 @@ export default function Battle(props: {
           kind: "shield",
         });
       } else if (e.kind === "CHARGE_SET") {
+        didBuff = true;
         addedBursts.push({
           id: `b${Date.now()}_${++burstSeqRef.current}`,
           side: e.target.side,
@@ -210,6 +221,11 @@ export default function Battle(props: {
         });
       }
     }
+
+    // 追加イベントに応じてSE（設定がOFFなら内部で無音）
+    if (didDamage) playSfx("hit");
+    if (didHeal) playSfx("heal");
+    if (didBuff) playSfx("buff");
 
     if (added.length || addedBursts.length || flashTarget) {
       setFx((prevFx) => ({
@@ -247,7 +263,7 @@ export default function Battle(props: {
           <div className="h1">バトル定義が見つかりません</div>
           <div className="muted">battleId: {props.battleId}</div>
           <div className="hr" />
-          <button className="btn" onClick={props.onExit}>
+          <button className="btn" onClick={() => { void ensureAudio(); playSfx("click"); props.onExit(); }}>
             戻る
           </button>
         </div>
@@ -280,6 +296,8 @@ export default function Battle(props: {
 
   function submitTurn() {
     if (!selectedAction) return;
+    void ensureAudio();
+    playSfx("confirm");
 
     // Reactのstate/propsはクロージャ内で型の絞り込みが維持されないため、ここで安全にガードする
     const current = state;
@@ -293,6 +311,7 @@ export default function Battle(props: {
     setSelectedAction(null);
 
     if (next.winner) {
+      playSfx(next.winner === mySide ? "win" : "lose");
       props.onFinish({ winner: next.winner, state: next });
     }
   }
@@ -330,7 +349,7 @@ export default function Battle(props: {
             {props.format === "3v3" ? (
               <>
                 <div className="hr" />
-                <BenchPanel team={myTeam} side={mySide} selectedAction={selectedAction} onPickSwap={(toSlot) => setSelectedAction({ kind: "swap", user: { side: mySide, slot: myTeam.activeSlot }, toSlot })} />
+                <BenchPanel team={myTeam} side={mySide} selectedAction={selectedAction} onPickSwap={(toSlot) => { void ensureAudio(); playSfx("swap"); setSelectedAction({ kind: "swap", user: { side: mySide, slot: myTeam.activeSlot }, toSlot }); }} />
               </>
             ) : null}
           </div>
@@ -363,7 +382,7 @@ export default function Battle(props: {
           {state.winner ? (
             <div className="kv">
               <span className="pill">勝者: {state.winner}</span>
-              <button className="btn" onClick={props.onExit}>
+              <button className="btn" onClick={() => { void ensureAudio(); playSfx("click"); props.onExit(); }}>
                 終了
               </button>
             </div>
@@ -380,7 +399,7 @@ export default function Battle(props: {
                       key={id}
                       className={"btn" + (isSelected ? " primary" : "")}
                       disabled={disabled}
-                      onClick={() => setSelectedAction({ kind: "useSkill", user: { side: mySide, slot: myTeam.activeSlot }, skillId: id })}
+                      onClick={() => { void ensureAudio(); playSfx("select"); setSelectedAction({ kind: "useSkill", user: { side: mySide, slot: myTeam.activeSlot }, skillId: id }); }}
                     >
                       {sk?.name ?? id}
                       <span className="pill" style={{ marginLeft: 8 }}>
@@ -397,7 +416,7 @@ export default function Battle(props: {
               <div className="hr" />
 
               <div className="kv">
-                <button className="btn" onClick={props.onExit}>
+                <button className="btn" onClick={() => { void ensureAudio(); playSfx("click"); props.onExit(); }}>
                   退出
                 </button>
                 <button className="btn primary" disabled={!canSubmit} onClick={submitTurn}>
