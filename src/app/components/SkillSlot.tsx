@@ -1,5 +1,5 @@
 import React from "react";
-import type { SkillDef } from "../../engine/data";
+import type { SkillDef } from "../../engine/types";
 import { ensureAudio, playSfx } from "../sound/sound";
 
 export default function SkillSlot(props: {

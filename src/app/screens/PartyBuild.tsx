@@ -133,9 +133,9 @@ export default function PartyBuild(props: {
                       {[0, 1, 2, 3].map((i) => (
                         <SkillSlot
                           key={i}
-                          slotIndex={i}
-                          skill={skillById[set[i]] ?? null}
+                          label={`技${i + 1}`}
                           options={learnables}
+                          value={set[i]}
                           onChange={(skillId) => {
                             setSkillSets((prev) => {
                               const nextSet = prev[u.id].map((x, idx) => (idx === i ? skillId : x)) as [string, string, string, string];
