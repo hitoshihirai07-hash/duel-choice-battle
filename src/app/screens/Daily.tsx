@@ -1,8 +1,31 @@
 import React, { useEffect, useMemo, useState } from "react";
 import type { GameData } from "../store/dataLoader";
 import type { SaveDataV1 } from "../save/saveAdapter";
-import type { BattleFormat } from "../../engine/types";
+import type { BattleFormat, SkillDef } from "../../engine/types";
 import { dailyBattleId, dailyRewardPoints, getJstDateKey, getJstWeekStartKey, jstKeyToUtcMs, utcMsToJstKey } from "../daily/daily";
+
+const statLabel: Record<string, string> = { atk: "攻撃", def: "守備", spd: "素早さ" };
+const pct = (v?: number) => (v == null ? "-" : `${Math.round(v * 100)}%`);
+
+const describeSkill = (sk: SkillDef): string => {
+  const base = `SP${sk.spCost} / CT${sk.cooldown}`;
+  switch (sk.type) {
+    case "attack":
+      return `攻撃（威力${sk.power ?? "-"} / 命中${pct(sk.hit)}）${base}`;
+    case "heal":
+      return `回復（HP${pct(sk.healPct)}）${base}`;
+    case "buff":
+      return `強化（${statLabel[sk.buff?.stat ?? ""] ?? "?"} +${Math.abs(sk.buff?.delta ?? 0)}）${base}`;
+    case "debuff":
+      return `弱体（${statLabel[sk.debuff?.stat ?? ""] ?? "?"} ${sk.debuff?.delta ?? 0}）${base}`;
+    case "guard":
+      return `防御（ガード${pct(sk.guardPct)} / ${sk.durationTurns ?? 1}T）${base}`;
+    case "charge":
+      return `溜め（次攻撃x${sk.chargeMul ?? "-"} / ${sk.durationTurns ?? 1}T）${base}`;
+    default:
+      return base;
+  }
+};
 
 export default function Daily(props: {
   data: GameData;
@@ -323,7 +346,7 @@ export default function Daily(props: {
                   <div className="col" key={id}>
                     <div className="card">
                       <div className="h3">{sk?.name ?? id}</div>
-                      {sk?.desc ? <div className="muted small">{sk.desc}</div> : null}
+                      {sk ? <div className="muted small">{describeSkill(sk)}</div> : null}
                       <div style={{ height: 10 }} />
                       <button className="btn primary" onClick={() => claimWeekly5(id)}>
                         これにする
