@@ -1,5 +1,6 @@
 import type { GameData } from "../store/dataLoader";
 import type { SaveDataV1 } from "./saveAdapter";
+import { getJstDateKey, getJstWeekStartKey } from "../daily/daily";
 
 export const TRAINING_STEP = {
   hp: 5,
@@ -25,6 +26,8 @@ function initialUnlockedSkillIds(u: { learnableSkillIds: string[]; defaultSkillS
 
 export function createDefaultSave(data: GameData): SaveDataV1 {
   const now = Date.now();
+  const todayKey = getJstDateKey(now);
+  const weekKey = getJstWeekStartKey(todayKey);
 
   return {
     version: 1,
@@ -40,7 +43,12 @@ export function createDefaultSave(data: GameData): SaveDataV1 {
     })),
     resources: { trainingPoints: 0 },
     settings: { textSpeed: 1, sfx: 1, bgm: 1 },
-    daily: { claimed: {}, streak: 0, lastClearedDate: undefined },
+    daily: {
+      claimed: {},
+      streak: 0,
+      lastClearedDate: undefined,
+      weekly: { weekKey, claimed: {}, w5Options: undefined },
+    },
   };
 }
 
@@ -73,6 +81,22 @@ export function normalizeSave(data: GameData, loaded: SaveDataV1): SaveDataV1 {
     };
   });
 
+  const todayKey = getJstDateKey();
+  const curWeekKey = getJstWeekStartKey(todayKey);
+
+  const inWeekly = loaded.daily?.weekly;
+  const weekly =
+    inWeekly && typeof inWeekly.weekKey === "string"
+      ? {
+          weekKey: inWeekly.weekKey,
+          claimed: inWeekly.claimed ?? {},
+          w5Options: Array.isArray(inWeekly.w5Options) ? inWeekly.w5Options : undefined,
+        }
+      : { weekKey: curWeekKey, claimed: {}, w5Options: undefined };
+
+  // 週が変わっていたら、週間報酬はリセット（デイリーの claimed は残す）
+  const normalizedWeekly = weekly.weekKey === curWeekKey ? weekly : { weekKey: curWeekKey, claimed: {}, w5Options: undefined };
+
   return {
     ...loaded,
     version: 1,
@@ -91,6 +115,7 @@ export function normalizeSave(data: GameData, loaded: SaveDataV1): SaveDataV1 {
       claimed: loaded.daily?.claimed ?? {},
       streak: loaded.daily?.streak ?? 0,
       lastClearedDate: loaded.daily?.lastClearedDate,
+      weekly: normalizedWeekly,
     },
   };
 }

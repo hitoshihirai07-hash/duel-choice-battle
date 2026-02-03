@@ -312,6 +312,7 @@ export default function App() {
         <Daily
           data={data}
           save={save}
+          onUpdateSave={updateSave}
           onStart={(format, battleId) => api.go({ name: "party", format, fromStory: false, battleId })}
           onBack={() => api.go({ name: "mode" })}
         />
